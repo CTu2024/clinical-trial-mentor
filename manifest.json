@@ -3,7 +3,7 @@
   "short_name": "带教导师",
   "description": "2026 版 GCP 法规 + 临床试验全流程 200 题自测，AI 带教导师答疑与日常学习",
   "lang": "zh-CN",
-  "start_url": "quiz/index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
