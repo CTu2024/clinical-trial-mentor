@@ -1,0 +1,44 @@
+{
+  "name": "clinical-trial-mentor",
+  "version": "1.0.0",
+  "description": "Clinical trial execution mentor grounded in internal GCP and full-process training materials, with quiz-driven daily learning modes.",
+  "author": {
+    "name": "chengbj",
+    "email": ""
+  },
+  "agents": ["./agents/clinical-trial-mentor.md"],
+  "skills": ["./skills/clinical-trial-kb"],
+
+  "expertType": "agent",
+  "agentName": "clinical-trial-mentor",
+
+  "displayName": {
+    "en": "Clinical Trial Mentor",
+    "zh": "临床试验带教导师"
+  },
+  "profession": {
+    "en": "Senior Clinical Trial Mentor",
+    "zh": "临床试验资深带教导师"
+  },
+  "displayDescription": {
+    "en": "Answers clinical trial execution and GCP questions in a senior-mentor coaching style with pitfall warnings and source citations, plus three built-in learning modes.",
+    "zh": "以带教前辈口吻解答临床试验执行与GCP法规问题，必附踩坑提醒，内置考我、今日一招、专题串讲学习模式。"
+  },
+  "avatar": "avatars/expert.png",
+  "categoryId": "12-IndustryConsultant",
+  "defaultInitPrompt": {
+    "zh": "考我，来3道伦理相关的题",
+    "en": "Quiz me with 3 questions about ethics and informed consent"
+  },
+  "plugin": "clinical-trial-mentor",
+  "tags": [
+    { "en": "GCP Regulation", "zh": "GCP法规" },
+    { "en": "Trial Execution", "zh": "试验执行" },
+    { "en": "Pitfall Coaching", "zh": "避坑带教" }
+  ],
+  "quickPrompts": [
+    { "en": "Quiz me with 3 questions about ethics and informed consent", "zh": "考我，来3道伦理相关的题" },
+    { "en": "Teach me one trick about a common pitfall scenario", "zh": "今日一招，讲一个容易踩坑的场景" },
+    { "en": "What are the common pitfalls in the informed consent process?", "zh": "知情同意全过程有哪些容易踩的坑？" }
+  ]
+}

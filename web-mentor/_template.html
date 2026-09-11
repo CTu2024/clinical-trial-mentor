@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>临床试验带教导师 · 网页版（BYOK）</title>
+<style>
+  :root{
+    --blue:#1a56db; --blue-light:#e8effc; --bg:#f5f7fa; --card:#fff;
+    --text:#1f2937; --muted:#6b7280; --border:#e5e7eb; --amber:#b45309; --amber-bg:#fffbeb;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;height:100vh;display:flex;flex-direction:column}
+  header{background:var(--card);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  header h1{font-size:16px;font-weight:600}
+  header .badge{font-size:11px;background:var(--blue-light);color:var(--blue);padding:2px 10px;border-radius:999px}
+  header .spacer{flex:1}
+  button{cursor:pointer;font-family:inherit}
+  .btn{padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);font-size:13px}
+  .btn-primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+  main{flex:1;display:flex;min-height:0}
+  aside{width:280px;background:var(--card);border-right:1px solid var(--border);padding:14px;overflow-y:auto;flex-shrink:0}
+  aside h3{font-size:13px;color:var(--muted);margin:10px 0 6px;font-weight:600}
+  .kbstat{background:var(--bg);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--muted);margin-bottom:8px}
+  .kbstat b{color:var(--text);font-size:15px;display:block}
+  .drop{border:2px dashed var(--border);border-radius:10px;padding:14px 10px;text-align:center;font-size:12px;color:var(--muted);cursor:pointer;margin-bottom:6px}
+  .drop.over{border-color:var(--blue);background:var(--blue-light)}
+  .modes{display:flex;flex-direction:column;gap:6px}
+  .modes .btn{text-align:left}
+  .chat{flex:1;display:flex;flex-direction:column;min-width:0}
+  #msgs{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:12px}
+  .msg{max-width:85%;padding:10px 14px;border-radius:12px;font-size:14px;white-space:pre-wrap;word-break:break-word}
+  .msg.user{align-self:flex-end;background:var(--blue);color:#fff;border-bottom-right-radius:4px}
+  .msg.bot{align-self:flex-start;background:var(--card);border:1px solid var(--border);border-bottom-left-radius:4px}
+  .msg.bot .src{font-size:11px;color:var(--muted);margin-top:8px;border-top:1px dashed var(--border);padding-top:6px}
+  .msg.err{align-self:center;background:var(--amber-bg);color:var(--amber);font-size:13px;border-radius:8px}
+  .inputbar{display:flex;gap:8px;padding:12px 16px;background:var(--card);border-top:1px solid var(--border)}
+  #inp{flex:1;resize:none;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:14px;max-height:120px}
+  .priv{font-size:11px;color:var(--muted);text-align:center;padding:0 0 6px}
+  /* settings modal */
+  .mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:10;align-items:center;justify-content:center}
+  .mask.show{display:flex}
+  .modal{background:var(--card);border-radius:14px;padding:22px;width:420px;max-width:92vw}
+  .modal h2{font-size:16px;margin-bottom:14px}
+  .modal label{font-size:13px;color:var(--muted);display:block;margin:10px 0 4px}
+  .modal input, .modal select{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit}
+  .modal .row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+  .tpl{font-size:12px;color:var(--blue);cursor:pointer;margin-right:10px}
+  .hint{font-size:11px;color:var(--muted);margin-top:8px}
+  @media (max-width:720px){ aside{display:none} }
+</style>
+</head>
+<body>
+<header>
+  <h1>临床试验带教导师</h1><span class="badge">BYOK 网页版 · 资料仅本地处理</span>
+  <span class="spacer"></span>
+  <button class="btn" id="btn-settings">⚙ 设置 API</button>
+</header>
+<main>
+  <aside>
+    <h3>知识库</h3>
+    <div class="kbstat"><b id="kb-count">0</b>已索引片段（内置 GCP 法规 + 200 题）</div>
+    <div class="drop" id="drop">把你的培训资料拖到这里<br>（.md / .txt，仅在本浏览器解析）<br>或点击选择文件</div>
+    <input type="file" id="file" multiple accept=".md,.txt" style="display:none">
+    <h3>学习模式</h3>
+    <div class="modes">
+      <button class="btn" data-mode="quiz">🎓 考我</button>
+      <button class="btn" data-mode="tip">💡 今日一招</button>
+      <button class="btn" data-mode="deep">📚 专题串讲</button>
+    </div>
+    <h3>说明</h3>
+    <p class="hint">问答与出题基于内置的 2026 版 GCP 法规和题库。拖入自己的 Markdown 资料后，检索范围会自动扩展。上传的资料只在你的浏览器里解析，不会上传到任何服务器；对话时仅发送检索到的相关片段到你所配置的 AI 服务。</p>
+  </aside>
+  <div class="chat">
+    <div id="msgs"></div>
+    <div class="inputbar">
+      <textarea id="inp" rows="1" placeholder="问一个临床试验执行中的问题，或说「考我」…"></textarea>
+      <button class="btn btn-primary" id="send">发送</button>
+    </div>
+    <p class="priv">AI 回答仅供学习参考，不构成法规咨询；实操请以现行法规与贵机构 SOP 为准。</p>
+  </div>
+</main>
+
+<div class="mask" id="mask">
+  <div class="modal">
+    <h2>API 设置（BYOK）</h2>
+    <label>服务商模板</label>
+    <div>
+      <span class="tpl" data-tpl="kimi">Kimi (Moonshot)</span>
+      <span class="tpl" data-tpl="deepseek">DeepSeek</span>
+      <span class="tpl" data-tpl="openai">OpenAI 兼容</span>
+    </div>
+    <label>API 地址（base URL）</label><input id="s-url" placeholder="https://api.moonshot.cn/v1">
+    <label>API Key</label><input id="s-key" type="password" placeholder="sk-...">
+    <label>模型</label><input id="s-model" placeholder="moonshot-v1-8k / deepseek-chat …">
+    <div class="row">
+      <button class="btn" id="s-cancel">取消</button>
+      <button class="btn btn-primary" id="s-save">保存</button>
+    </div>
+    <p class="hint">Key 只保存在你浏览器本地的 localStorage 中，页面不经过任何中间服务器，请求直连你所填的 API 地址。</p>
+  </div>
+</div>
+
+<script>
+window.onerror = function(msg, src, line, col){
+  document.title = 'ERR: ' + msg;
+  var d = document.createElement('div');
+  d.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#fee2e2;color:#991b1b;padding:10px;font-size:12px;z-index:999;white-space:pre-wrap;';
+  d.textContent = 'JS错误: ' + msg + '\n行 ' + line + ':' + col;
+  document.body.appendChild(d);
+};
+// ================= injected data =================
+const GCP_REG = __GCP_REG__;
+const QUIZ = __QUIZ__;
+
+// ================= BM25 =================
+function tokenize(text){
+  const out = [];
+  const re = /[a-z0-9]+|[\u4e00-\u9fff]+/g;
+  let m;
+  while((m = re.exec(text.toLowerCase()))){
+    const t = m[0];
+    if(/^[a-z0-9]+$/.test(t)){ out.push(t); continue; }
+    if(t.length === 1){ out.push(t); continue; }
+    for(let i=0;i<t.length-1;i++) out.push(t.slice(i,i+2));
+  }
+  return out;
+}
+let CHUNKS = [];
+let INDEX = null;
+function addChunk(text, source, kind){
+  text = text.trim();
+  if(text.length < 30 || text.length > 1500) return;
+  CHUNKS.push({t:text, s:source, k:kind||'user', tokens:tokenize(text)});
+}
+function chunkRegulation(){
+  const lines = GCP_REG.split('\n');
+  let buf = [], head = '修订概述';
+  const flush = ()=>{ if(buf.length){ addChunk(buf.join('\n'), '2026版GCP·'+head, 'reg'); buf=[]; } };
+  for(const ln of lines){
+    const m = ln.match(/^\s*(第[一二三四五六七八九十百零]+条)/);
+    if(m){ flush(); head = m[1]; }
+    buf.push(ln);
+  }
+  flush();
+}
+function chunkQuiz(){
+  for(const [label, arr] of [['综合卷', QUIZ.comprehensive], ['GCP卷', QUIZ.gcp]]){
+    for(const q of arr){
+      const t = '【'+q.stage+'·'+q.type+'】'+q.q+'\n答案要点：'+q.a.join('；')+(q.pit?('\n踩坑提醒：'+q.pit):'')+'\n来源：'+q.src;
+      addChunk(t, label+'第'+q.n+'题', 'quiz');
+    }
+  }
+}
+function chunkUserDoc(name, text){
+  const parts = text.split(/^#{1,6}\s*/m);
+  let pieces = [];
+  if(parts.length > 1){
+    // split with headings: re-attach heading titles
+    const lines = text.split('\n');
+    let curHead = name, cur = [];
+    for(const ln of lines){
+      const m = ln.match(/^#{1,6}\s+(.*)/);
+      if(m){ if(cur.length) pieces.push({h:curHead, b:cur.join('\n')}); curHead = name+'·'+m[1]; cur=[]; }
+      else cur.push(ln);
+    }
+    if(cur.length) pieces.push({h:curHead, b:cur.join('\n')});
+  } else pieces = [{h:name, b:text}];
+  for(const p of pieces){
+    const paras = p.b.split(/\n\s*\n/);
+    let buf = '';
+    for(const para of paras){
+      if((buf + para).length > 900){ if(buf.trim()) addChunk(buf, p.h, 'user'); buf = para + '\n'; }
+      else buf += para + '\n';
+    }
+    if(buf.trim()) addChunk(buf, p.h, 'user');
+  }
+}
+function buildIndex(){
+  const df = {};
+  for(const c of CHUNKS){
+    const seen = new Set(c.tokens);
+    for(const t of seen) df[t] = (df[t]||0)+1;
+  }
+  const N = CHUNKS.length;
+  const avgdl = CHUNKS.reduce((s,c)=>s+c.tokens.length,0)/Math.max(N,1);
+  INDEX = {df, N, avgdl};
+}
+function bm25(query, k=5, kindFilter){
+  if(!INDEX || !CHUNKS.length) return [];
+  const k1=1.5, b=0.75;
+  const qTokens = tokenize(query);
+  const scores = [];
+  for(let i=0;i<CHUNKS.length;i++){
+    const c = CHUNKS[i];
+    if(kindFilter && c.k !== kindFilter) continue;
+    const tf = {};
+    for(const t of c.tokens) tf[t]=(tf[t]||0)+1;
+    let score = 0;
+    for(const t of qTokens){
+      const idf = Math.log(1 + (INDEX.N - (INDEX.df[t]||0) + 0.5)/((INDEX.df[t]||0)+0.5));
+      const f = tf[t]||0;
+      if(!f) continue;
+      score += idf * f*(k1+1)/(f + k1*(1-b+b*c.tokens.length/INDEX.avgdl));
+    }
+    if(score>0) scores.push([score,i]);
+  }
+  scores.sort((a,b2)=>b2[0]-a[0]);
+  return scores.slice(0,k).map(([s,i])=>({score:s, ...CHUNKS[i]}));
+}
+function buildKB(){
+  CHUNKS = [];
+  chunkRegulation(); chunkQuiz();
+  for(const d of USER_DOCS) chunkUserDoc(d.name, d.text);
+  buildIndex();
+  document.getElementById('kb-count').textContent = CHUNKS.length + (USER_DOCS.length? ' + '+USER_DOCS.length+' 份自备':'');
+}
+
+// ================= user docs =================
+let USER_DOCS = [];
+try{ USER_DOCS = JSON.parse(localStorage.getItem('ctm_docs')||'[]'); }catch(e){}
+function saveDocs(){ try{ localStorage.setItem('ctm_docs', JSON.stringify(USER_DOCS)); }catch(e){ console.warn('docs too large for localStorage'); } }
+
+// ================= settings =================
+const TPLS = {
+  kimi:{url:'https://api.moonshot.cn/v1', model:'moonshot-v1-8k'},
+  deepseek:{url:'https://api.deepseek.com/v1', model:'deepseek-chat'},
+  openai:{url:'https://api.openai.com/v1', model:'gpt-4o-mini'}
+};
+function loadCfg(){ try{ return JSON.parse(localStorage.getItem('ctm_cfg')||'{}'); }catch(e){ return {}; } }
+function saveCfg(c){ localStorage.setItem('ctm_cfg', JSON.stringify(c)); }
+
+// ================= chat =================
+const msgsEl = document.getElementById('msgs');
+function addMsg(cls, html){
+  const d = document.createElement('div');
+  d.className = 'msg '+cls; d.innerHTML = html;
+  msgsEl.appendChild(d); msgsEl.scrollTop = msgsEl.scrollHeight;
+  return d;
+}
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function mdLite(s){
+  s = esc(s);
+  s = s.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>');
+  s = s.replace(/^### (.*)$/gm,'<b>$1</b>');
+  s = s.replace(/^## (.*)$/gm,'<b>$1</b>');
+  return s;
+}
+const SYSTEM_PROMPT = `你是一位在临床试验一线工作了十几年的资深前辈（CRA 出身、做过项目经理），现在带教新人。回答必须遵守以下铁律：
+1. 像前辈讲话，不像教科书：口语化、直给，可以结合"我见过有人栽过"的口吻。
+2. 结论先行：第一句话就给结论或判断，再展开原因。
+3. 必带踩坑提醒：涉及实操的问题，明确指出"最容易栽的坑"。
+4. 启发式分层展开：回答有多个要点时，先每点给一句提示，然后问用户"想先展开哪一点"，用户追问再深入。
+5. 少文字多结构：能列清单不写段落，能分点不分块。
+6. 只依据【参考资料】回答专业内容，引用时注明出处（如"来源：2026版GCP第二十六条"或"综合卷第9题"）。资料没覆盖的内容要明说"参考资料未覆盖"，可补充行业常识但标注"经验之谈"。
+7. 时限、数字、条款必须与参考资料完全一致，绝对不编造。
+8. 2026版GCP自2026年9月1日起施行，涉及新旧版本差异时主动提醒。
+9. 全程使用中文。`;
+
+function buildContext(query){
+  // quota: always include top-3 regulation chunks + top-3 quiz/user chunks
+  const reg = bm25(query, 3, 'reg');
+  const rest = bm25(query, 3);
+  const hits = reg.concat(rest).sort((a,b)=>b.score-a.score);
+  if(!hits.length) return {ctx:'', src:''};
+  const ctx = hits.map((h,i)=>'['+(i+1)+'] 来源：'+h.s+'\n'+h.t).join('\n\n');
+  const src = '参考资料片段：'+hits.map(h=>h.s).join('、');
+  return {ctx, src};
+}
+
+async function callLLM(userContent, onDelta){
+  const cfg = loadCfg();
+  if(!cfg.key){ throw new Error('请先点击右上角「⚙ 设置 API」填入你的 API Key（支持 Kimi / DeepSeek / 任意 OpenAI 兼容接口）'); }
+  const base = (cfg.url||'').replace(/\/+$/,'');
+  const res = await fetch(base + '/chat/completions', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},
+    body: JSON.stringify({
+      model: cfg.model,
+      stream: true,
+      temperature: 0.5,
+      messages: [
+        {role:'system', content: SYSTEM_PROMPT},
+        {role:'user', content: userContent}
+      ]
+    })
+  });
+  if(!res.ok){
+    const t = await res.text().catch(()=>'' );
+    throw new Error('API 请求失败 '+res.status+'：'+t.slice(0,300));
+  }
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = '', full = '';
+  while(true){
+    const {done, value} = await reader.read();
+    if(done) break;
+    buf += dec.decode(value, {stream:true});
+    const lines = buf.split('\n');
+    buf = lines.pop();
+    for(const ln of lines){
+      const s = ln.trim();
+      if(!s.startsWith('data:')) continue;
+      const payload = s.slice(5).trim();
+      if(payload === '[DONE]') continue;
+      try{
+        const j = JSON.parse(payload);
+        const d = j.choices && j.choices[0] && (j.choices[0].delta && j.choices[0].delta.content || '');
+        if(d){ full += d; onDelta(full); }
+      }catch(e){}
+    }
+  }
+  return full;
+}
+
+let busy = false;
+async function ask(text, opts){
+  if(busy) return;
+  const cfg = loadCfg();
+  opts = opts || {};
+  if(!opts.silentUser) addMsg('user', esc(text));
+  if(!cfg.key){
+    addMsg('err','还没配置 API Key。点击右上角「⚙ 设置 API」，填入 Kimi / DeepSeek 等 OpenAI 兼容接口的地址和 Key 就能开始。');
+    return;
+  }
+  busy = true;
+  const bot = addMsg('bot','思考中…');
+  try{
+    if(opts.mode === 'pick-quiz'){
+      // local quiz picking: no LLM call for the question itself
+      bot.innerHTML = mdLite(text);
+      busy = false; return;
+    }
+    let userContent, srcNote = '';
+    if(opts.mode === 'tip' && opts.quiz){
+      const q = opts.quiz;
+      userContent = '【今日一招】请基于下面这道内部题库的题目，给学员做一次"情景小故事"讲解：\n'+
+        '先描述一个具体的踩坑场景（不要直接复制题目原文），然后停下来问学员"如果是你，你会怎么办？"（本次直接继续，不用真的等待）。\n'+
+        '接着给出正确做法（依据答案要点）、点出坑在哪里（依据踩坑提醒），最后用一句话总结并注明出处。\n\n'+
+        '题目：【'+q.stage+'·'+q.type+'】'+q.q+'\n答案要点：'+q.a.join('；')+(q.pit?('\n踩坑提醒：'+q.pit):'')+'\n来源：'+q.src;
+      srcNote = '来源：'+q.src;
+    } else if(opts.mode === 'quiz-review'){
+      userContent = '【考我·点评】学员刚回答了一道题，请逐条点评：哪里答对了、哪里漏了、哪里理解偏了，语气像前辈带教，最后给这道题的完整参考要点和出处。\n\n题目：'+opts.quiz.q+
+        '\n答案要点：'+opts.quiz.a.join('；')+(opts.quiz.pit?('\n踩坑提醒：'+opts.quiz.pit):'')+'\n来源：'+opts.quiz.src+
+        '\n\n学员的回答：'+text;
+    } else {
+      const {ctx, src} = buildContext(text);
+      userContent = (ctx? '【参考资料】\n'+ctx+'\n\n【学员的问题】'+text : '【学员的问题】'+text+'\n\n（知识库未检索到直接相关内容，如无把握请如实说明）');
+      srcNote = src;
+    }
+    let first = true;
+    const full = await callLLM(userContent, (cur)=>{
+      bot.innerHTML = mdLite(cur) + (srcNote? '<div class="src">'+esc(srcNote)+'</div>' : '');
+      msgsEl.scrollTop = msgsEl.scrollHeight;
+    });
+    bot.innerHTML = mdLite(full) + (srcNote? '<div class="src">'+esc(srcNote)+'</div>' : '');
+  }catch(e){
+    bot.className = 'msg err';
+    bot.textContent = '出错：'+e.message;
+  }
+  busy = false;
+}
+
+// ================= modes =================
+let PENDING_QUIZ = null;
+function pickQuiz(filter){
+  let pool = QUIZ.comprehensive.concat(QUIZ.gcp);
+  if(filter){
+    const f = pool.filter(q=>q.stage && q.stage.includes(filter));
+    if(f.length) pool = f;
+  }
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+function modeQuiz(extra){
+  const topic = (extra||'').replace(/考我|出题|来几道|来3道|来三道|道题|的题|，|,|。|\s/g,'');
+  const q = pickQuiz(topic || null);
+  PENDING_QUIZ = q;
+  addMsg('user', esc('考我' + (topic? '（'+topic+'）':'')));
+  addMsg('bot', mdLite('来，第 '+(q.n)+' 题（'+q.stage+' · '+q.type+'）：\n\n'+q.q+'\n\n（想好了再作答，我按要点给你点评。直接打字回答即可；偷看答案可以说"公布答案"。）') + '<div class="src">来源：'+esc(q.src)+'</div>');
+}
+function modeTip(){
+  const pool = QUIZ.comprehensive.concat(QUIZ.gcp).filter(q=>q.pit);
+  const q = pool[Math.floor(Math.random()*pool.length)];
+  addMsg('user', esc('今日一招'));
+  ask('', {mode:'tip', quiz:q, silentUser:true});
+}
+function modeDeep(){
+  addMsg('user', esc('专题串讲'));
+  addMsg('bot', mdLite('好，告诉我你想串讲哪个专题？比如：监查、知情同意、SAE 报告、药物管理、数据锁定、中心关闭……\n我会把知识库里相关的内容串成一次完整讲解：法规底线 → 实操流程 → 常见坑，最后附 3 道自测题。'));
+}
+
+// ================= events =================
+const inp = document.getElementById('inp');
+document.getElementById('send').onclick = ()=>{
+  const t = inp.value.trim(); if(!t || busy) return;
+  inp.value='';
+  if(/^公布答案|看答案|直接给答案/.test(t) && PENDING_QUIZ){
+    const q = PENDING_QUIZ;
+    addMsg('user', esc(t));
+    addMsg('bot', mdLite('参考要点：\n- '+q.a.join('\n- ')) + (q.pit? mdLite('\n\n⚠ 踩坑提醒：'+q.pit):'') + '<div class="src">来源：'+esc(q.src)+'</div>');
+    return;
+  }
+  if(/考我|出题/.test(t) && t.length < 25 && !PENDING_QUIZ){ modeQuiz(t); return; }
+  if(PENDING_QUIZ){
+    const q = PENDING_QUIZ; PENDING_QUIZ = null;
+    ask(t, {mode:'quiz-review', quiz:q});
+    return;
+  }
+  ask(t);
+};
+inp.addEventListener('keydown', e=>{
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); document.getElementById('send').click(); }
+});
+document.querySelectorAll('.modes .btn').forEach(b=>{
+  b.onclick = ()=>{
+    const m = b.dataset.mode;
+    if(m==='quiz') modeQuiz('');
+    else if(m==='tip') modeTip();
+    else modeDeep();
+  };
+});
+
+// settings modal
+const mask = document.getElementById('mask');
+document.getElementById('btn-settings').onclick = ()=>{
+  const c = loadCfg();
+  document.getElementById('s-url').value = c.url||'';
+  document.getElementById('s-key').value = c.key||'';
+  document.getElementById('s-model').value = c.model||'';
+  mask.classList.add('show');
+};
+document.getElementById('s-cancel').onclick = ()=> mask.classList.remove('show');
+document.getElementById('s-save').onclick = ()=>{
+  saveCfg({url:document.getElementById('s-url').value.trim(), key:document.getElementById('s-key').value.trim(), model:document.getElementById('s-model').value.trim()});
+  mask.classList.remove('show');
+  addMsg('bot', mdLite('API 已保存 ✅ 现在可以直接提问，或点左侧「考我 / 今日一招 / 专题串讲」开始学习。'));
+};
+document.querySelectorAll('.tpl').forEach(t=>{
+  t.onclick = ()=>{
+    const c = TPLS[t.dataset.tpl];
+    document.getElementById('s-url').value = c.url;
+    document.getElementById('s-model').value = c.model;
+  };
+});
+
+// upload
+const drop = document.getElementById('drop');
+const fileInp = document.getElementById('file');
+drop.onclick = ()=> fileInp.click();
+['dragover','dragenter'].forEach(ev=> drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(ev=> drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e=> handleFiles(e.dataTransfer.files));
+fileInp.onchange = ()=> handleFiles(fileInp.files);
+function handleFiles(files){
+  for(const f of files){
+    const r = new FileReader();
+    r.onload = ()=>{
+      const exist = USER_DOCS.findIndex(d=>d.name===f.name);
+      const doc = {name:f.name, text:String(r.result).slice(0, 500000)};
+      if(exist>=0) USER_DOCS[exist] = doc; else USER_DOCS.push(doc);
+      saveDocs(); buildKB();
+      addMsg('bot', mdLite('已加载「'+f.name+'」并加入检索范围（本地解析，不会上传）。当前知识库共 '+CHUNKS.length+' 个片段。'));
+    };
+    r.readAsText(f);
+  }
+}
+
+// ================= init =================
+buildKB();
+addMsg('bot', mdLite('我是你的临床试验带教导师。直接问我执行中的任何问题，或者：\n- 说「考我」→ 我出情景题，你答完我点评\n- 点「今日一招」→ 一个踩坑场景小故事\n- 点「专题串讲」→ 把一个主题讲透\n\n内置知识：2026 版 GCP 法规全文 + 200 道内部题库。想扩展知识库，把你的 Markdown 资料拖进左侧即可（仅本地解析）。'));
+</script>
+</body>
+</html>
