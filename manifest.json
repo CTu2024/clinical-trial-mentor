@@ -1,0 +1,32 @@
+{
+  "name": "临床试验带教导师",
+  "short_name": "带教导师",
+  "description": "2026 版 GCP 法规 + 临床试验全流程 200 题自测，AI 带教导师答疑与日常学习",
+  "lang": "zh-CN",
+  "start_url": "quiz/index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#185fa5",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

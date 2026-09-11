@@ -49,6 +49,13 @@
   .hint{font-size:11px;color:var(--muted);margin-top:8px}
   @media (max-width:720px){ aside{display:none} }
 </style>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#185fa5">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="带教导师">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 </head>
 <body>
 <header>
@@ -468,6 +475,13 @@ function handleFiles(files){
 // ================= init =================
 buildKB();
 addMsg('bot', mdLite('我是你的临床试验带教导师。直接问我执行中的任何问题，或者：\n- 说「考我」→ 我出情景题，你答完我点评\n- 点「今日一招」→ 一个踩坑场景小故事\n- 点「专题串讲」→ 把一个主题讲透\n\n内置知识：2026 版 GCP 法规全文 + 200 道内部题库。想扩展知识库，把你的 Markdown 资料拖进左侧即可（仅本地解析）。'));
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("../sw.js").catch(function () {});
+  });
+}
 </script>
 </body>
 </html>

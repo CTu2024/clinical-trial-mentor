@@ -19,6 +19,13 @@
   .foot{ margin-top:28px; font-size:12px; color:var(--muted); border-top:1px solid var(--border); padding-top:12px; }
   .foot a{ color:var(--blue); }
 </style>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#185fa5">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="带教导师">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 </head>
 <body>
 <div class="wrap">
@@ -40,5 +47,12 @@
   </div>
   <p class="foot">题库文本版见仓库根目录 <a href="https://github.com/CTu2024/clinical-trial-mentor/blob/main/quiz-bank.md">quiz-bank.md</a> · 使用方式与本地导入见 <a href="https://github.com/CTu2024/clinical-trial-mentor#readme">README</a></p>
 </div>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("../sw.js").catch(function () {});
+  });
+}
+</script>
 </body>
 </html>

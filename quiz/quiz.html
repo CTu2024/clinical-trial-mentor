@@ -54,6 +54,13 @@
   .hint-count{font-size:12px; color:var(--muted); text-align:center; margin:10px 0 0;}
   @media print{ .ops,.tabs,.tools{display:none} .ans{display:block} }
 </style>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#185fa5">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="带教导师">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 </head>
 <body>
 <div class="wrap">
@@ -475,6 +482,13 @@ STAGES.forEach(s=>{
 $("fstate").onchange=e=>{ curState=e.target.value; render(); };
 $("reset").onclick=resetAll;
 stats(); render();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("../sw.js").catch(function () {});
+  });
+}
 </script>
 </body>
 </html>
