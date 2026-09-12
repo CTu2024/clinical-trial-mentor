@@ -281,13 +281,14 @@ async function callLLM(userContent, onDelta){
   const cfg = loadCfg();
   if(!cfg.key){ throw new Error('请先点击右上角「⚙ 设置 API」填入你的 API Key（支持 Kimi / DeepSeek / 任意 OpenAI 兼容接口）'); }
   const base = (cfg.url||'').replace(/\/+$/,'');
+  const model = cfg.model || TPLS.kimi.model;
   let res;
   try{
     res = await fetch(base + '/chat/completions', {
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},
       body: JSON.stringify({
-        model: cfg.model,
+        model: model,
         stream: true,
         temperature: 0.5,
         messages: [
@@ -307,7 +308,7 @@ async function callLLM(userContent, onDelta){
     else if(res.status===405) hint = '（API 地址最可能填成了官网地址 platform.moonshot.cn——正确的是 https://api.moonshot.cn/v1，点设置里的「Kimi (Moonshot)」自动填好，程序现在也会自动纠正）';
     else if(res.status===429) hint = '（请求太频繁或账户余额不足——稍后再试，或去平台充值）';
     else if(res.status>=500) hint = '（API 服务暂时不可用——稍后再试）';
-    throw new Error('API 请求失败 '+res.status+' '+hint+'\n实际请求地址：'+base+'/chat/completions\n（如果是 404，请打开设置点一次「测试连接」——测试成功会自动保存正确地址）');
+    throw new Error('API 请求失败 '+res.status+' '+hint+'\n实际请求地址：'+base+'/chat/completions\n模型：'+model+'\n服务器原始返回：'+t.slice(0,200));
   }
   const reader = res.body.getReader();
   const dec = new TextDecoder();
