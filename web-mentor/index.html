@@ -232,7 +232,7 @@ function saveDocs(){ try{ localStorage.setItem('ctm_docs', JSON.stringify(USER_D
 
 // ================= settings =================
 const TPLS = {
-  kimi:{url:'https://api.moonshot.cn/v1', model:'moonshot-v1-8k'},
+  kimi:{url:'https://api.moonshot.cn/v1', model:'kimi-k2.6'},
   deepseek:{url:'https://api.deepseek.com/v1', model:'deepseek-chat'},
   openai:{url:'https://api.openai.com/v1', model:'gpt-4o-mini'}
 };
@@ -281,7 +281,9 @@ async function callLLM(userContent, onDelta){
   const cfg = loadCfg();
   if(!cfg.key){ throw new Error('请先点击右上角「⚙ 设置 API」填入你的 API Key（支持 Kimi / DeepSeek / 任意 OpenAI 兼容接口）'); }
   const base = (cfg.url||'').replace(/\/+$/,'');
-  const model = cfg.model || TPLS.kimi.model;
+  // moonshot-v1 全系列与 kimi-latest 已于 2026-08-31 下线，自动迁移到在售模型
+  let model = cfg.model || TPLS.kimi.model;
+  if(/^(moonshot-v1|kimi-latest|kimi-k2-|kimi-thinking)/.test(model)){ model = 'kimi-k2.6'; }
   let res;
   try{
     res = await fetch(base + '/chat/completions', {
