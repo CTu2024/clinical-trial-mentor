@@ -301,7 +301,7 @@ async function callLLM(userContent, onDelta){
     const t = await res.text().catch(()=>'' );
     let hint = '';
     if(res.status===401 || res.status===403) hint = '（Key 无效或已过期——点右上角「⚙ 设置 API」重新粘贴）';
-    else if(res.status===404) hint = '（API 地址不对——地址结尾应是 /v1，点设置里的「Kimi (Moonshot)」可自动填好）';
+    else if(res.status===404) hint = '（API 地址不对——正确的是 https://api.moonshot.cn/v1 这种"到 /v1 为止"的写法；如果粘贴了完整的 /chat/completions 结尾，程序已自动清理，点保存重试即可）';
     else if(res.status===405) hint = '（API 地址最可能填成了官网地址 platform.moonshot.cn——正确的是 https://api.moonshot.cn/v1，点设置里的「Kimi (Moonshot)」自动填好，程序现在也会自动纠正）';
     else if(res.status===429) hint = '（请求太频繁或账户余额不足——稍后再试，或去平台充值）';
     else if(res.status>=500) hint = '（API 服务暂时不可用——稍后再试）';
@@ -453,7 +453,7 @@ document.getElementById('s-save').onclick = ()=>{
   let key = document.getElementById('s-key').value.trim();
   let model = document.getElementById('s-model').value.trim();
   if(!url){ url = TPLS.kimi.url; }
-  url = url.replace(/\/+$/,'').replace('platform.moonshot.cn','api.moonshot.cn').replace('platform.deepseek.com','api.deepseek.com');
+  url = url.replace(/\/+$/,'').replace(/\/chat\/completions\/?$/,'').replace('platform.moonshot.cn','api.moonshot.cn').replace('platform.deepseek.com','api.deepseek.com');
   if(/api\.moonshot\.cn$/.test(url) || /api\.deepseek\.com$/.test(url)) url += '/v1';
   document.getElementById('s-url').value = url;
   if(!model){ model = TPLS.kimi.model; document.getElementById('s-model').value = model; }

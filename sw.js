@@ -1,7 +1,7 @@
 /* 临床试验带教导师 · Service Worker
    策略：HTML 页面 network-first（保证题目更新后用户能拿到新版），
    失败时回退缓存（离线可答题）；其他同源 GET 资源 stale-while-revalidate。 */
-const CACHE = "ctm-v1";
+const CACHE = "ctm-v2";
 const PRECACHE = [
   "./",
   "quiz/",
