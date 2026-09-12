@@ -102,8 +102,10 @@
     <label>模型</label><input id="s-model" placeholder="moonshot-v1-8k / deepseek-chat …">
     <div class="row">
       <button class="btn" id="s-cancel">取消</button>
+      <button class="btn" id="s-test">测试连接</button>
       <button class="btn btn-primary" id="s-save">保存</button>
     </div>
+    <p id="s-test-result" class="hint"></p>
     <p class="hint">Key 只保存在你浏览器本地的 localStorage 中，页面不经过任何中间服务器，请求直连你所填的 API 地址。手机粘贴时首尾空格会自动清理；地址和模型留空时自动按 Kimi 填好。如果你在微信里打开本页，建议点右上角「…」选「在浏览器打开」后再设置。</p>
   </div>
 </div>
@@ -448,14 +450,39 @@ document.getElementById('btn-settings').onclick = ()=>{
   mask.classList.add('show');
 };
 document.getElementById('s-cancel').onclick = ()=> mask.classList.remove('show');
-document.getElementById('s-save').onclick = ()=>{
+function cleanedBase(){
   let url = document.getElementById('s-url').value.trim();
-  let key = document.getElementById('s-key').value.trim();
-  let model = document.getElementById('s-model').value.trim();
   if(!url){ url = TPLS.kimi.url; }
   url = url.replace(/\/+$/,'').replace(/\/chat\/completions\/?$/,'').replace('platform.moonshot.cn','api.moonshot.cn').replace('platform.deepseek.com','api.deepseek.com');
   if(/api\.moonshot\.cn$/.test(url) || /api\.deepseek\.com$/.test(url)) url += '/v1';
   document.getElementById('s-url').value = url;
+  return url;
+}
+document.getElementById('s-test').onclick = async ()=>{
+  const url = cleanedBase();
+  const key = document.getElementById('s-key').value.trim();
+  const el = document.getElementById('s-test-result');
+  if(!key){ el.textContent = '请先粘贴 API Key 再测试。'; return; }
+  el.textContent = '正在测试…';
+  try{
+    const r = await fetch(url+'/models', {headers:{'Authorization':'Bearer '+key}});
+    if(r.ok){
+      const j = await r.json().catch(()=>null);
+      const n = j && j.data ? j.data.length : 0;
+      el.textContent = '✅ 连接成功：地址和 Key 都有效（可用模型 '+n+' 个）。点「保存」后即可开始提问。';
+    }else if(r.status===401 || r.status===403){
+      el.textContent = '❌ 地址正确，但 Key 无效（'+r.status+'）——请回平台重新复制完整的 Key（sk- 开头，一整串）。';
+    }else{
+      el.textContent = '❌ 服务器返回 '+r.status+'——地址可能不对。正确格式：https://api.moonshot.cn/v1（到 /v1 为止，不带 /chat/completions）。';
+    }
+  }catch(e){
+    el.textContent = '❌ 连不上服务器：检查手机网络；如果在微信里打开本页，点右上角「…」→「在浏览器打开」再试。';
+  }
+};
+document.getElementById('s-save').onclick = ()=>{
+  let url = cleanedBase();
+  let key = document.getElementById('s-key').value.trim();
+  let model = document.getElementById('s-model').value.trim();
   if(!model){ model = TPLS.kimi.model; document.getElementById('s-model').value = model; }
   if(!key){ alert('还没有填 API Key。\n\n获取方法：\n1. 打开 platform.moonshot.cn（Kimi 开放平台）或 platform.deepseek.com，用手机号注册\n2. 进入"API Key"页面，点"新建"，复制以 sk- 开头的字符串\n3. 回到这里粘贴，点保存\n\n注意：API 地址填 https://api.moonshot.cn/v1（不是浏览器里的官网地址，程序已自动帮你纠正）'); return; }
   saveCfg({url:url, key:key, model:model});
