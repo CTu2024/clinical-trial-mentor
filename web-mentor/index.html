@@ -292,7 +292,7 @@ async function callLLM(userContent, onDelta){
       body: JSON.stringify({
         model: model,
         stream: true,
-        temperature: 0.5,
+        // 不传 temperature：思考型模型（kimi-k2.6/kimi-k3 等）只允许默认值
         messages: [
           {role:'system', content: SYSTEM_PROMPT},
           {role:'user', content: userContent}
