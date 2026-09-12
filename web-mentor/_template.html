@@ -48,6 +48,21 @@
   .modal .row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
   .tpl{font-size:12px;color:var(--blue);cursor:pointer;margin-right:10px}
   .hint{font-size:11px;color:var(--muted);margin-top:8px}
+  /* setup wizard */
+  .wstep{border-top:1px solid var(--border);padding-top:12px;margin-top:12px}
+  .wstep:first-of-type{border-top:0;padding-top:0;margin-top:0}
+  .wtitle{font-size:13px;font-weight:600;margin-bottom:8px}
+  .keylinks{display:flex;gap:6px;flex-wrap:wrap}
+  a.kbtn{font-size:12.5px;text-decoration:none;color:var(--blue);border:1px solid var(--blue);border-radius:999px;padding:4px 12px}
+  a.kbtn.primary{background:var(--blue);color:#fff}
+  a.kbtn:hover{background:var(--blue-light)}
+  .wrow{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+  #s-auto{padding:9px 18px}
+  #adv{margin-top:14px;font-size:12px;color:var(--muted)}
+  #adv summary{cursor:pointer;color:var(--blue)}
+  #adv label{font-size:12px}
+  .wok{color:#0f6e56;font-weight:600}
+  .wbad{color:#993c1d;font-weight:600}
   @media (max-width:720px){ aside{display:none} }
 </style>
 <link rel="manifest" href="../manifest.json">
@@ -60,10 +75,10 @@
 </head>
 <body>
 <header>
-  <h1>临床试验带教导师</h1><span class="badge">BYOK 网页版 · 资料仅本地处理</span><span class="badge" id="ver-badge" title="页面内核版本">内核 0912g</span>
+  <h1>临床试验带教导师</h1><span class="badge">BYOK 网页版 · 资料仅本地处理</span><span class="badge" id="ver-badge" title="页面内核版本">内核 0912h</span>
   <span class="spacer"></span>
   <a class="btn btn-home" href="../" title="回到首页选择其他模式">⌂ 首页</a>
-  <button class="btn" id="btn-settings">⚙ 设置 API</button>
+  <button class="btn" id="btn-settings">⚙ 设置 AI</button>
 </header>
 <main>
   <aside>
@@ -92,23 +107,48 @@
 
 <div class="mask" id="mask">
   <div class="modal">
-    <h2>API 设置（BYOK）</h2>
-    <label>服务商模板</label>
-    <div>
-      <span class="tpl" data-tpl="kimi">Kimi (Moonshot)</span>
-      <span class="tpl" data-tpl="deepseek">DeepSeek</span>
-      <span class="tpl" data-tpl="openai">OpenAI 兼容</span>
+    <h2>设置 AI 服务</h2>
+
+    <div class="wstep">
+      <p class="wtitle">① 还没有 Key？点一家去申请（手机号注册，约 1 分钟，新用户有免费额度）</p>
+      <div class="keylinks">
+        <a class="kbtn primary" target="_blank" rel="noopener" href="https://platform.moonshot.cn/console/api-keys">Kimi（推荐·已验证可用）</a>
+        <a class="kbtn" target="_blank" rel="noopener" href="https://platform.deepseek.com/api_keys">DeepSeek</a>
+        <a class="kbtn" target="_blank" rel="noopener" href="https://cloud.siliconflow.cn/account/ak">硅基流动</a>
+        <a class="kbtn" target="_blank" rel="noopener" href="https://bailian.console.aliyun.com/">通义千问</a>
+        <a class="kbtn" target="_blank" rel="noopener" href="https://bigmodel.cn/usercenter/apikeys">智谱 GLM</a>
+      </div>
+      <p class="hint">在申请页面点「新建 API Key / 创建密钥」，复制 <b>sk-</b> 开头那一整串。已经有 Key 就直接看第 ②③ 步。</p>
     </div>
-    <label>API 地址（base URL）</label><input id="s-url" placeholder="https://api.moonshot.cn/v1">
-    <label>API Key</label><input id="s-key" type="password" placeholder="sk-...">
-    <label>模型</label><input id="s-model" placeholder="moonshot-v1-8k / deepseek-chat …">
-    <div class="row">
-      <button class="btn" id="s-cancel">取消</button>
-      <button class="btn" id="s-test">测试连接</button>
-      <button class="btn btn-primary" id="s-save">保存</button>
+
+    <div class="wstep">
+      <p class="wtitle">② 把 Key 粘贴到这里（首尾空格会自动清理）</p>
+      <input id="s-key" type="password" placeholder="sk-...">
     </div>
-    <p id="s-test-result" class="hint"></p>
-    <p class="hint">Key 只保存在你浏览器本地的 localStorage 中，页面不经过任何中间服务器，请求直连你所填的 API 地址。手机粘贴时首尾空格会自动清理；地址和模型留空时自动按 Kimi 填好。如果你在微信里打开本页，建议点右上角「…」选「在浏览器打开」后再设置。</p>
+
+    <div class="wstep">
+      <p class="wtitle">③ 点一下，自动认领</p>
+      <div class="wrow">
+        <button class="btn btn-primary" id="s-auto">自动识别并保存</button>
+        <button class="btn" id="s-cancel">取消</button>
+      </div>
+      <p id="s-test-result" class="hint">不用选服务商、不用填地址和模型名——点上面的按钮，程序会自己判断这把 Key 属于哪家、并用哪款模型。</p>
+    </div>
+
+    <details id="adv">
+      <summary>识别不出来？点这里手动指定（高级）</summary>
+      <label>服务商</label>
+      <select id="s-provider"></select>
+      <label>API 地址（base URL）</label><input id="s-url" placeholder="https://api.moonshot.cn/v1">
+      <label>模型</label><input id="s-model" placeholder="kimi-k2.6 / deepseek-chat …">
+      <div class="row">
+        <button class="btn" id="s-test">测试连接</button>
+        <button class="btn btn-primary" id="s-save">保存</button>
+      </div>
+      <p class="hint">地址写到 /v1 为止（智谱写到 /api/paas/v4）。粘贴了完整 /chat/completions 结尾、或误填了 platform 官网地址，程序会自动纠正。企业内部网关、Azure OpenAI 等填自定义地址即可，但要求对方允许网页直连（CORS）。</p>
+    </details>
+
+    <p class="hint">不想配置 API？也可以直接用 WorkBuddy 专家版（免 Key）：ctu2024.github.io/clinical-trial-mentor</p>
   </div>
 </div>
 
@@ -236,11 +276,27 @@ try{ USER_DOCS = JSON.parse(localStorage.getItem('ctm_docs')||'[]'); }catch(e){}
 function saveDocs(){ try{ localStorage.setItem('ctm_docs', JSON.stringify(USER_DOCS)); }catch(e){ console.warn('docs too large for localStorage'); } }
 
 // ================= settings =================
-const TPLS = {
-  kimi:{url:'https://api.moonshot.cn/v1', model:'kimi-k2.6'},
-  deepseek:{url:'https://api.deepseek.com/v1', model:'deepseek-chat'},
-  openai:{url:'https://api.openai.com/v1', model:'gpt-4o-mini'}
-};
+// 服务商清单：URL 与模型名于 2026-09 核对；数组顺序即自动识别的优先级
+const PROVIDERS = [
+  {id:'kimi',        name:'Kimi（月之暗面）',        url:'https://api.moonshot.cn/v1',
+   model:'kimi-k2.6', prefer:[/^kimi-k2\.6$/, /^kimi-k2\.5$/, /kimi-k2/]},
+  {id:'deepseek',    name:'DeepSeek',               url:'https://api.deepseek.com/v1',
+   model:'deepseek-chat', prefer:[/^deepseek-v4-flash$/, /^deepseek-chat$/, /^deepseek-v4-pro$/, /deepseek/]},
+  {id:'siliconflow', name:'硅基流动',                url:'https://api.siliconflow.cn/v1',
+   model:'deepseek-ai/DeepSeek-V3.2', prefer:[/DeepSeek-V3\.2/, /DeepSeek-V3/, /Qwen3/]},
+  {id:'dashscope',   name:'通义千问（阿里云百炼）',   url:'https://dashscope.aliyuncs.com/compatible-mode/v1',
+   model:'qwen-plus', prefer:[/^qwen3\.6-flash$/, /^qwen-plus$/, /^qwen3/]},
+  {id:'zhipu',       name:'智谱 GLM',                url:'https://open.bigmodel.cn/api/paas/v4',
+   model:'glm-4.7-flash', prefer:[/^glm-4\.7-flash$/, /^glm-5\.1$/, /^glm-4/]},
+  {id:'minimax',     name:'MiniMax',                url:'https://api.minimax.chat/v1',
+   model:'MiniMax-M3', prefer:[/^MiniMax-M3$/, /MiniMax/]},
+  {id:'openrouter',  name:'OpenRouter',             url:'https://openrouter.ai/api/v1',
+   model:'anthropic/claude-sonnet-latest', prefer:[/claude-sonnet-latest/]},
+  {id:'openai',      name:'OpenAI',                 url:'https://api.openai.com/v1',
+   model:'gpt-4o-mini', prefer:[/^gpt-4o-mini$/, /^gpt-4o$/, /^gpt/]}
+];
+const TPLS = {};
+for(const p of PROVIDERS) TPLS[p.id] = {url:p.url, model:p.model};
 function loadCfg(){ try{ return JSON.parse(localStorage.getItem('ctm_cfg')||'{}'); }catch(e){ return {}; } }
 function saveCfg(c){ localStorage.setItem('ctm_cfg', JSON.stringify(c)); }
 
@@ -310,7 +366,7 @@ function buildContext(query){
 
 async function callLLM(userContent, onDelta){
   const cfg = loadCfg();
-  if(!cfg.key){ throw new Error('请先点击右上角「⚙ 设置 API」填入你的 API Key（支持 Kimi / DeepSeek / 任意 OpenAI 兼容接口）'); }
+  if(!cfg.key){ throw new Error('请先点击右上角「⚙ 设置 AI」填入你的 API Key（支持 Kimi / DeepSeek / 任意 OpenAI 兼容接口）'); }
   const base = (cfg.url||'').replace(/\/+$/,'');
   // moonshot-v1 全系列与 kimi-latest 已于 2026-08-31 下线，自动迁移到在售模型
   let model = cfg.model || TPLS.kimi.model;
@@ -484,27 +540,123 @@ document.querySelectorAll('.modes .btn').forEach(b=>{
 
 // settings modal
 const mask = document.getElementById('mask');
+const statusEl = ()=> document.getElementById('s-test-result');
+function providerOptionsInit(){
+  const sel = document.getElementById('s-provider');
+  if(sel.options.length) return;
+  sel.innerHTML = PROVIDERS.map(p=>'<option value="'+p.id+'">'+p.name+'</option>').join('') +
+    '<option value="custom">自定义 / 企业内部网关</option>';
+}
 document.getElementById('btn-settings').onclick = ()=>{
+  providerOptionsInit();
   const c = loadCfg();
-  document.getElementById('s-url').value = c.url||TPLS.kimi.url;
-  document.getElementById('s-key').value = c.key||'';
-  document.getElementById('s-model').value = c.model||TPLS.kimi.model;
+  document.getElementById('s-url').value = c.url || TPLS.kimi.url;
+  document.getElementById('s-key').value = c.key || '';
+  document.getElementById('s-model').value = c.model || TPLS.kimi.model;
+  const sel = document.getElementById('s-provider');
+  const known = PROVIDERS.find(p=>p.url === (c.url||''));
+  sel.value = known ? known.id : (c.url ? 'custom' : 'kimi');
+  statusEl().innerHTML = c.key
+    ? '当前已保存：<b>'+esc(c.url||'')+'</b>（模型 '+esc(c.model||'')+'）。想换一把 Key，直接粘贴新的再点「自动识别并保存」。'
+    : '不用选服务商、不用填地址和模型名——把 Key 粘到上面，点「自动识别并保存」即可。';
   mask.classList.add('show');
 };
 document.getElementById('s-cancel').onclick = ()=> mask.classList.remove('show');
+document.getElementById('s-provider').onchange = ()=>{
+  const v = document.getElementById('s-provider').value;
+  if(v === 'custom') return;
+  document.getElementById('s-url').value = TPLS[v].url;
+  document.getElementById('s-model').value = TPLS[v].model;
+};
 function cleanedBase(){
   let url = document.getElementById('s-url').value.trim();
   if(!url){ url = TPLS.kimi.url; }
-  url = url.replace(/\/+$/,'').replace(/\/chat\/completions\/?$/,'').replace('platform.moonshot.cn','api.moonshot.cn').replace('platform.deepseek.com','api.deepseek.com');
-  if(/api\.moonshot\.cn$/.test(url) || /api\.deepseek\.com$/.test(url)) url += '/v1';
+  url = url.replace(/\/+$/,'')
+           .replace(/\/chat\/completions\/?$/,'')
+           .replace('platform.moonshot.cn','api.moonshot.cn')
+           .replace('platform.deepseek.com','api.deepseek.com')
+           .replace('bailian.console.aliyun.com','dashscope.aliyuncs.com/compatible-mode');
+  if(/api\.moonshot\.cn$/.test(url) || /api\.deepseek\.com$/.test(url) || /api\.siliconflow\.cn$/.test(url)) url += '/v1';
+  if(/^https?:\/\/open\.bigmodel\.cn$/.test(url)) url += '/api/paas/v4';
   document.getElementById('s-url').value = url;
   return url;
 }
+// —— 自动识别：/models 列模型 → 选一款 → 发一条最小对话做端到端验证 ——
+function pickModel(ids, p){
+  for(const re of (p.prefer||[])){ const hit = ids.find(id=>re.test(id)); if(hit) return hit; }
+  return ids.find(id=>!/embed|rerank|tts|whisper|audio|moderation|image|video|vision-only/i.test(id)) || p.model;
+}
+async function probeProvider(p, key){
+  const ctl = new AbortController();
+  const timer = setTimeout(()=>ctl.abort(), 8000);
+  try{
+    let ids = [], model = p.model;
+    try{
+      const r = await fetch(p.url+'/models', {headers:{'Authorization':'Bearer '+key}, signal:ctl.signal});
+      if(r.ok){
+        const j = await r.json().catch(()=>null);
+        ids = ((j && j.data) || []).map(m=>m.id||m.model||'').filter(Boolean);
+        if(ids.length) model = pickModel(ids, p);
+      }else if(r.status===401 || r.status===403){
+        return {ok:false, kind:'auth', status:r.status};
+      }
+    }catch(e){
+      if(e.name === 'AbortError') return {ok:false, kind:'timeout'};
+      // /models 拉不到不代表不可用，继续用默认模型试一次对话
+    }
+    const r2 = await fetch(p.url+'/chat/completions', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body: JSON.stringify({model:model, messages:[{role:'user', content:'你好'}], stream:false}),
+      signal:ctl.signal
+    });
+    if(r2.ok){
+      await r2.json().catch(()=>null);
+      return {ok:true, model};
+    }
+    const t2 = await r2.text().catch(()=>'');
+    return {ok:false, kind:(r2.status===401||r2.status===403)?'auth':'http', status:r2.status, detail:t2.slice(0,140), model};
+  }catch(e){
+    return {ok:false, kind:(e.name==='AbortError')?'timeout':'net'};
+  }finally{
+    clearTimeout(timer);
+  }
+}
+document.getElementById('s-auto').onclick = async ()=>{
+  const key = document.getElementById('s-key').value.trim();
+  const el = statusEl();
+  if(!key){ el.innerHTML = '<span class="wbad">还没有粘贴 Key。</span>先点第 ① 步里的按钮去申请一把，或把已有的 Key 粘到第 ② 步的框里。'; return; }
+  el.innerHTML = '正在自动识别（约 10 秒，会尝试 '+PROVIDERS.length+' 家服务商）…';
+  const results = await Promise.all(PROVIDERS.map(p=>probeProvider(p,key).then(r=>({p, r}))));
+  const hit = results.find(x=>x.r.ok);
+  if(hit){
+    const p = hit.p, model = hit.r.model;
+    saveCfg({url:p.url, key:key, model:model, provider:p.name});
+    document.getElementById('s-url').value = p.url;
+    document.getElementById('s-model').value = model;
+    el.innerHTML = '<span class="wok">✅ 已识别：'+p.name+'</span>，模型 <b>'+esc(model)+'</b>，配置已保存。关掉本窗口直接提问即可。';
+    addMsg('bot', mdLite('AI 连接成功 ✅ 识别为 **'+p.name+'**（模型 '+model+'），Key 只保存在本机浏览器。\n直接提问即可；点左侧「考我 / 今日一招 / 专题串讲」开始学习。'));
+    setTimeout(()=> mask.classList.remove('show'), 900);
+    return;
+  }
+  const auth = results.filter(x=>x.r.kind==='auth').length;
+  const net = results.filter(x=>x.r.kind==='net'||x.r.kind==='timeout').length;
+  let msg = '<span class="wbad">没能识别出来。</span>';
+  if(auth === results.length){
+    msg += '所有服务商都返回“Key 无效”——多半是 Key 没复制全（要 sk- 开头的一整串），或这把 Key 还没在平台上启用。';
+  }else if(net >= 3){
+    msg += '网络请求都没成功：请检查手机是否联网；如果本页是在微信里打开的，点右上角「…」→「在浏览器打开」再试（微信内置浏览器常拦截接口请求）。';
+  }else{
+    msg += '这把 Key 可能来自不支持网页直连的服务商（服务端不允许浏览器调用，即 CORS 限制）。建议改用 Kimi 或 DeepSeek 的 Key。';
+  }
+  msg += '<br>仍然不行→展开下面的「手动指定」填写地址和模型，或直接用 WorkBuddy 专家版（免 Key）。';
+  el.innerHTML = msg;
+};
 document.getElementById('s-test').onclick = async ()=>{
   const url = cleanedBase();
   const key = document.getElementById('s-key').value.trim();
-  const el = document.getElementById('s-test-result');
-  if(!key){ el.textContent = '请先粘贴 API Key 再测试。'; return; }
+  const el = statusEl();
+  if(!key){ el.innerHTML = '<span class="wbad">请先粘贴 API Key 再测试。</span>'; return; }
   el.textContent = '正在测试…';
   try{
     const r = await fetch(url+'/models', {headers:{'Authorization':'Bearer '+key}});
@@ -514,33 +666,29 @@ document.getElementById('s-test').onclick = async ()=>{
       const model = document.getElementById('s-model').value.trim() || TPLS.kimi.model;
       document.getElementById('s-model').value = model;
       saveCfg({url:url, key:key, model:model});
-      el.textContent = '✅ 连接成功（可用模型 '+n+' 个），配置已自动保存。关掉本窗口直接提问即可。';
+      el.innerHTML = '<span class="wok">✅ 连接成功</span>（可用模型 '+n+' 个），配置已自动保存。';
     }else if(r.status===401 || r.status===403){
-      el.textContent = '❌ 地址正确，但 Key 无效（'+r.status+'）——请回平台重新复制完整的 Key（sk- 开头，一整串）。';
+      el.innerHTML = '<span class="wbad">❌ 地址正确，但 Key 无效（'+r.status+'）</span>——请回平台重新复制完整的 Key。';
     }else{
-      el.textContent = '❌ 服务器返回 '+r.status+'——地址可能不对。正确格式：https://api.moonshot.cn/v1（到 /v1 为止，不带 /chat/completions）。';
+      el.innerHTML = '<span class="wbad">❌ 服务器返回 '+r.status+'</span>——地址可能不对。格式参考：https://api.moonshot.cn/v1（不带 /chat/completions）。';
     }
   }catch(e){
-    el.textContent = '❌ 连不上服务器：检查手机网络；如果在微信里打开本页，点右上角「…」→「在浏览器打开」再试。';
+    el.innerHTML = '<span class="wbad">❌ 连不上服务器</span>：检查网络；若在微信里打开本页，请点「…」→「在浏览器打开」。';
   }
 };
 document.getElementById('s-save').onclick = ()=>{
-  let url = cleanedBase();
-  let key = document.getElementById('s-key').value.trim();
+  const url = cleanedBase();
+  const key = document.getElementById('s-key').value.trim();
   let model = document.getElementById('s-model').value.trim();
   if(!model){ model = TPLS.kimi.model; document.getElementById('s-model').value = model; }
-  if(!key){ alert('还没有填 API Key。\n\n获取方法：\n1. 打开 platform.moonshot.cn（Kimi 开放平台）或 platform.deepseek.com，用手机号注册\n2. 进入"API Key"页面，点"新建"，复制以 sk- 开头的字符串\n3. 回到这里粘贴，点保存\n\n注意：API 地址填 https://api.moonshot.cn/v1（不是浏览器里的官网地址，程序已自动帮你纠正）'); return; }
+  if(!key){
+    statusEl().innerHTML = '<span class="wbad">还没有填 API Key。</span>点第 ① 步里的按钮去申请，或把已有 Key 粘到第 ② 步。';
+    return;
+  }
   saveCfg({url:url, key:key, model:model});
   mask.classList.remove('show');
-  addMsg('bot', mdLite('API 已保存 ✅ Key '+key.slice(0,6)+'… → '+url.replace(/^https?:\/\//,'')+'（模型 '+model+'）\n现在直接提问即可；点左侧「考我 / 今日一招 / 专题串讲」开始学习。'));
+  addMsg('bot', mdLite('API 已保存 ✅ '+url.replace(/^https?:\/\//,'')+'（模型 '+model+'）\nKey 只保存在本机浏览器。现在直接提问即可。'));
 };
-document.querySelectorAll('.tpl').forEach(t=>{
-  t.onclick = ()=>{
-    const c = TPLS[t.dataset.tpl];
-    document.getElementById('s-url').value = c.url;
-    document.getElementById('s-model').value = c.model;
-  };
-});
 
 // upload
 const drop = document.getElementById('drop');

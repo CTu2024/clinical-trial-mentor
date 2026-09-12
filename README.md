@@ -25,7 +25,9 @@
 
 打开 **https://ctu2024.github.io/clinical-trial-mentor/web-mentor/** ：
 
-- 点右上角「⚙ 设置 API」，填入 **Kimi / DeepSeek / 任意 OpenAI 兼容接口**的地址和 Key
+- 点右上角「⚙ 设置 AI」→ 把 **sk-** 开头的 Key 粘进去 → 点「自动识别并保存」：程序自动判断这把 Key 属于哪家服务商、自动选好模型，**不需要填 API 地址和模型名**
+- 内置识别：Kimi（月之暗面）、DeepSeek、硅基流动、通义千问（阿里云百炼）、智谱 GLM、MiniMax、OpenRouter、OpenAI；识别不出时可在「手动指定」里填任意 OpenAI 兼容地址（企业网关、Azure OpenAI 等，需对方允许网页直连）
+- 页面里直接提供各家申请 Key 的入口按钮（Kimi / DeepSeek / 硅基流动 / 通义 / 智谱），新用户注册即有免费额度
 - 内置 2026 版 GCP 法规全文 + 全流程操作指南三部曲 + 200 题题库做检索（纯浏览器本地 BM25，不需要后端）
 - 三种学习模式：
   - **考我** — 出情景题等你作答，逐条点评，可指定专题（如"考我，伦理相关的"）
