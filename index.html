@@ -51,7 +51,7 @@
 <div class="wrap">
   <header>
     <h1>临床试验带教导师</h1>
-    <p class="tagline">把 2026 版 GCP 法规和一线执行经验，变成能随身带的学习工具。有两种用法，选一个开始：</p>
+    <p class="tagline">把 2026 版 GCP 法规和一线执行经验，变成能随身带的学习工具。刷题免配置直接开始；AI 答疑推荐用 WorkBuddy 专家版，免 API Key。</p>
     <div class="rule"></div>
   </header>
 
@@ -70,18 +70,39 @@
     </div>
   </div>
 
-  <div class="path">
+  <div class="path reco">
     <div class="path-head">
-      <h2>AI 实时答疑</h2>
-      <span class="badge amber">需要自己的 API Key</span>
+      <h2>AI 实时答疑 · WorkBuddy 专家版</h2>
+      <span class="badge">推荐 · 免 API Key · 装上即用</span>
     </div>
-    <p>像问一位带教前辈：直接提执行中的问题，结论先行、必附踩坑提醒和法规出处；也能让它"考我"或把某个专题串讲一遍。</p>
-    <p class="fit">适合：手头正遇到具体问题，想要针对性的讲解，而不是翻题库。</p>
+    <p>像问一位带教前辈：直接提执行中的问题，结论先行、必附踩坑提醒和法规出处；也能让它"考我"或把某个专题串讲一遍。装在 WorkBuddy 里运行，AI 由 WorkBuddy 提供，<b>不需要自己申请 API Key</b>。</p>
+    <p class="fit">适合：所有想用 AI 答疑的同事——尤其是第一次用、不想折腾配置的。</p>
     <div class="actions">
-      <a class="btn btn-primary" href="web-mentor/">进入 AI 导师</a>
+      <a class="btn btn-primary" href="https://github.com/CTu2024/clinical-trial-mentor/raw/main/expert/clinical-trial-mentor.zip">下载专家包（zip）</a>
     </div>
     <details class="guide">
-      <summary>第一次用 AI 答疑？3 步设置（约 5 分钟）</summary>
+      <summary>怎么装到 WorkBuddy？（约 2 分钟）</summary>
+      <ol>
+        <li>点上面的按钮，下载 <b>clinical-trial-mentor.zip</b>（不用解压）</li>
+        <li>打开 WorkBuddy → 左侧「专家」→ 我的专家 → 导入，选中这个 zip</li>
+        <li>在专家中心启动「临床试验带教导师」，直接提问即可</li>
+      </ol>
+    </details>
+    <p class="fit" style="margin-top:10px">说明：公开版内置 GCP 法规全文 + 200 道题库。如果你的团队还有内部全流程培训资料，把它们（Markdown）放进专家包的 <code>references/</code> 目录再导入，导师就能引用它们回答。</p>
+  </div>
+
+  <div class="path">
+    <div class="path-head">
+      <h2>AI 实时答疑 · 网页版</h2>
+      <span class="badge amber">备选 · 需要自己的 API Key</span>
+    </div>
+    <p>不用装 WorkBuddy，浏览器直接用。但需要自己申请一个 API Key（Kimi 或 DeepSeek，新用户有免费额度）。</p>
+    <p class="fit">适合：没有 WorkBuddy、但愿意花 5 分钟配一次 Key 的用户。</p>
+    <div class="actions">
+      <a class="btn btn-ghost" href="web-mentor/">进入网页版 AI 导师</a>
+    </div>
+    <details class="guide">
+      <summary>第一次用网页版？3 步设置（约 5 分钟）</summary>
       <ol>
         <li>打开 <b>platform.moonshot.cn</b>（Kimi）或 <b>platform.deepseek.com</b>，手机号注册，新用户有免费额度</li>
         <li>在"API Key"页面点"新建"，复制那串 <b>sk-</b> 开头的字符</li>

@@ -17,7 +17,11 @@
 
 支持按板块筛选、按答题状态筛选、进度自动保存（浏览器本地）、自评对错。
 
-### 2️⃣ 网页版 AI 带教导师（BYOK，填自己的 API Key）
+### 2️⃣ WorkBuddy 专家包（AI 答疑 · 推荐，免 API Key）
+
+如果你在用 [WorkBuddy](https://www.workbuddy.cn)：下载 [`expert/clinical-trial-mentor.zip`](expert/clinical-trial-mentor.zip)，在 WorkBuddy「专家 → 我的专家」导入即可，**AI 由 WorkBuddy 提供，不需要自己申请 API Key**。同样的带教人格 + 三种学习模式（考我 / 今日一招 / 专题串讲），且支持放入自有资料扩展知识库（见 [expert/README](expert/clinical-trial-mentor/README.md)）。
+
+### 3️⃣ 网页版 AI 带教导师（BYOK，填自己的 API Key）
 
 打开 **https://ctu2024.github.io/clinical-trial-mentor/web-mentor/** ：
 
@@ -28,10 +32,6 @@
   - **今日一招** — 随机一个踩坑场景的情景小故事
   - **专题串讲** — 把一个主题（监查、知情同意、SAE……）从法规底线到实操坑点讲透
 - **隐私**：你的培训资料可以拖进页面扩展检索范围，只在你的浏览器本地解析，不上传任何服务器；对话仅发送检索到的相关片段到你配置的 AI 服务
-
-### 3️⃣ WorkBuddy 专家包（一键导入，体验最完整）
-
-如果你在用 [WorkBuddy](https://www.workbuddy.cn)：下载 [`expert/clinical-trial-mentor.zip`](expert/clinical-trial-mentor.zip)，在 WorkBuddy「专家 → 我的专家」导入即可。同样的带教人格 + 学习模式，且支持放入自有资料扩展知识库（见 [expert/README](expert/clinical-trial-mentor/README.md)）。
 
 ## 目录结构
 
