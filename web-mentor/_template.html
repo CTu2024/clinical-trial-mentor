@@ -60,7 +60,7 @@
 </head>
 <body>
 <header>
-  <h1>临床试验带教导师</h1><span class="badge">BYOK 网页版 · 资料仅本地处理</span><span class="badge" id="ver-badge" title="页面内核版本">内核 0912e</span>
+  <h1>临床试验带教导师</h1><span class="badge">BYOK 网页版 · 资料仅本地处理</span><span class="badge" id="ver-badge" title="页面内核版本">内核 0912f</span>
   <span class="spacer"></span>
   <a class="btn btn-home" href="../" title="回到首页选择其他模式">⌂ 首页</a>
   <button class="btn" id="btn-settings">⚙ 设置 API</button>
@@ -263,20 +263,28 @@ const SYSTEM_PROMPT = `你是一位在临床试验一线工作了十几年的资
 3. 必带踩坑提醒：涉及实操的问题，明确指出"最容易栽的坑"。
 4. 启发式分层展开：回答有多个要点时，先每点给一句提示，然后问用户"想先展开哪一点"，用户追问再深入。
 5. 少文字多结构：能列清单不写段落，能分点不分块。
-6. 只依据【参考资料】回答专业内容，引用时注明出处（如"来源：2026版GCP第二十六条"或"综合卷第9题"）。资料没覆盖的内容要明说"参考资料未覆盖"，可补充行业常识但标注"经验之谈"。
+6. 只依据【参考资料】回答专业内容，引用时注明出处（如"来源：2026版GCP第二十六条"或"综合卷第9题"）。**如果【参考资料】与问题主题不相关（例如问的是资料范围之外的专题），必须明确回答"这个问题超出我的内置资料范围"，并说明内置资料范围（2026版GCP法规全文 + 200道题 + 用户上传的资料），绝对不能拿不相关的片段拼凑回答，也不能凭通用知识回答法规细节。**资料部分覆盖时，只答覆盖到的部分，其余如实说明。
 7. 时限、数字、条款必须与参考资料完全一致，绝对不编造。
 8. 2026版GCP自2026年9月1日起施行，涉及新旧版本差异时主动提醒。
 9. 全程使用中文。`;
 
+function contentTokens(query){
+  // 从问题里提取"有信息量"的词元，过滤通用词（什么/要求/临床/实验等），用于判断检索结果与问题的关键词重合度
+  const gen = new Set(['的','了','吗','呢','有','什','么','怎','如','何','要','求','规','定','需','哪','些','可','应','该','注','意','流','程','临','床','试','验','实','验','如','果','如','何','处理','进行','相关','关于','对于']);
+  return tokenize(query).filter(t => /^[a-z0-9]+$/.test(t) || ![...t].every(ch => gen.has(ch)));
+}
 function buildContext(query){
   // quota: always include top-3 regulation chunks + top-3 quiz/user chunks
   const reg = bm25(query, 3, 'reg');
   const rest = bm25(query, 3);
   const hits = reg.concat(rest).sort((a,b)=>b.score-a.score);
-  if(!hits.length) return {ctx:'', src:''};
+  const cts = contentTokens(query);
+  // 关键词重合度：至少一个高信息量词元真实出现在片段文本里，否则视为"弱相关"
+  const covered = hits.some(h => cts.some(t => h.t.includes(t) || h.s.includes(t)));
+  if(!hits.length) return {ctx:'', src:'', weak:false, empty:true};
   const ctx = hits.map((h,i)=>'['+(i+1)+'] 来源：'+h.s+'\n'+h.t).join('\n\n');
   const src = '参考资料片段：'+hits.map(h=>h.s).join('、');
-  return {ctx, src};
+  return {ctx, src, weak:!covered, empty:false};
 }
 
 async function callLLM(userContent, onDelta){
@@ -369,9 +377,17 @@ async function ask(text, opts){
         '\n答案要点：'+opts.quiz.a.join('；')+(opts.quiz.pit?('\n踩坑提醒：'+opts.quiz.pit):'')+'\n来源：'+opts.quiz.src+
         '\n\n学员的回答：'+text;
     } else {
-      const {ctx, src} = buildContext(text);
-      userContent = (ctx? '【参考资料】\n'+ctx+'\n\n【学员的问题】'+text : '【学员的问题】'+text+'\n\n（知识库未检索到直接相关内容，如无把握请如实说明）');
-      srcNote = src;
+      const bc = buildContext(text);
+      if(bc.empty){
+        // 检索完全无结果：不调 API，不花用户的钱，直接如实拒答
+        bot.className = 'msg';
+        bot.innerHTML = mdLite('这个问题我的**内置资料没有覆盖到**，我不能瞎答。\n\n我的知识范围：2026 版 GCP 法规全文 + 200 道题'+(CHUNKS.some(c=>c.k==='user')?' + 你上传的资料':'')+'。\n\n你可以：\n- 问 GCP 法规相关的问题\n- 说「考我」来刷题\n- 把相关培训资料（.md / .txt）从左侧上传给我，上传后马上就能答');
+        busy = false;
+        return;
+      }
+      userContent = '【参考资料】\n'+bc.ctx+'\n\n【学员的问题】'+text;
+      if(bc.weak) userContent += '\n\n（提示：以上片段与问题的关键词重合度低。如果片段与问题主题不相关，你必须如实回答"这个问题超出内置资料范围"，绝不能用不相关片段拼凑回答。）';
+      srcNote = bc.src;
     }
     let first = true;
     const full = await callLLM(userContent, (cur)=>{
@@ -529,7 +545,7 @@ function handleFiles(files){
 
 // ================= init =================
 buildKB();
-addMsg('bot', mdLite('我是你的临床试验带教导师。直接问我执行中的任何问题，或者：\n- 说「考我」→ 我出情景题，你答完我点评\n- 点「今日一招」→ 一个踩坑场景小故事\n- 点「专题串讲」→ 把一个主题讲透\n\n内置知识：2026 版 GCP 法规全文 + 200 道内部题库。想扩展知识库，把你的 Markdown 资料拖进左侧即可（仅本地解析）。'));
+addMsg('bot', mdLite('我是你的临床试验带教导师。直接问我执行中的任何问题，或者：\n- 说「考我」→ 我出情景题，你答完我点评\n- 点「今日一招」→ 一个踩坑场景小故事\n- 点「专题串讲」→ 把一个主题讲透\n\n内置知识：2026 版 GCP 法规全文 + 200 道题。超出这个范围的问题我会如实说没覆盖，不瞎编。想扩展知识库，把你的 Markdown 资料拖进左侧（手机点那个框也能选文件），仅本地解析。'));
 </script>
 <script>
 if ("serviceWorker" in navigator) {
