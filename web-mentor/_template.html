@@ -43,7 +43,7 @@
   .modal{background:var(--card);border-radius:14px;padding:22px;width:420px;max-width:92vw}
   .modal h2{font-size:16px;margin-bottom:14px}
   .modal label{font-size:13px;color:var(--muted);display:block;margin:10px 0 4px}
-  .modal input, .modal select{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit}
+  .modal input, .modal select{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:16px;font-family:inherit}
   .modal .row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
   .tpl{font-size:12px;color:var(--blue);cursor:pointer;margin-right:10px}
   .hint{font-size:11px;color:var(--muted);margin-top:8px}
@@ -104,7 +104,7 @@
       <button class="btn" id="s-cancel">取消</button>
       <button class="btn btn-primary" id="s-save">保存</button>
     </div>
-    <p class="hint">Key 只保存在你浏览器本地的 localStorage 中，页面不经过任何中间服务器，请求直连你所填的 API 地址。</p>
+    <p class="hint">Key 只保存在你浏览器本地的 localStorage 中，页面不经过任何中间服务器，请求直连你所填的 API 地址。手机粘贴时首尾空格会自动清理；地址和模型留空时自动按 Kimi 填好。如果你在微信里打开本页，建议点右上角「…」选「在浏览器打开」后再设置。</p>
   </div>
 </div>
 
@@ -279,22 +279,32 @@ async function callLLM(userContent, onDelta){
   const cfg = loadCfg();
   if(!cfg.key){ throw new Error('请先点击右上角「⚙ 设置 API」填入你的 API Key（支持 Kimi / DeepSeek / 任意 OpenAI 兼容接口）'); }
   const base = (cfg.url||'').replace(/\/+$/,'');
-  const res = await fetch(base + '/chat/completions', {
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},
-    body: JSON.stringify({
-      model: cfg.model,
-      stream: true,
-      temperature: 0.5,
-      messages: [
-        {role:'system', content: SYSTEM_PROMPT},
-        {role:'user', content: userContent}
-      ]
-    })
-  });
+  let res;
+  try{
+    res = await fetch(base + '/chat/completions', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},
+      body: JSON.stringify({
+        model: cfg.model,
+        stream: true,
+        temperature: 0.5,
+        messages: [
+          {role:'system', content: SYSTEM_PROMPT},
+          {role:'user', content: userContent}
+        ]
+      })
+    });
+  }catch(e){
+    throw new Error('连不上 API 服务器。请检查：1) 手机是否联网；2) 如果你在微信里打开本页，请点右上角「…」→「在浏览器打开」后重试（微信内置浏览器经常拦截接口请求）。');
+  }
   if(!res.ok){
     const t = await res.text().catch(()=>'' );
-    throw new Error('API 请求失败 '+res.status+'：'+t.slice(0,300));
+    let hint = '';
+    if(res.status===401 || res.status===403) hint = '（Key 无效或已过期——点右上角「⚙ 设置 API」重新粘贴）';
+    else if(res.status===404) hint = '（API 地址不对——地址结尾应是 /v1，点设置里的「Kimi (Moonshot)」可自动填好）';
+    else if(res.status===429) hint = '（请求太频繁或账户余额不足——稍后再试，或去平台充值）';
+    else if(res.status>=500) hint = '（API 服务暂时不可用——稍后再试）';
+    throw new Error('API 请求失败 '+res.status+' '+hint+'：'+t.slice(0,200));
   }
   const reader = res.body.getReader();
   const dec = new TextDecoder();
@@ -431,16 +441,22 @@ document.querySelectorAll('.modes .btn').forEach(b=>{
 const mask = document.getElementById('mask');
 document.getElementById('btn-settings').onclick = ()=>{
   const c = loadCfg();
-  document.getElementById('s-url').value = c.url||'';
+  document.getElementById('s-url').value = c.url||TPLS.kimi.url;
   document.getElementById('s-key').value = c.key||'';
-  document.getElementById('s-model').value = c.model||'';
+  document.getElementById('s-model').value = c.model||TPLS.kimi.model;
   mask.classList.add('show');
 };
 document.getElementById('s-cancel').onclick = ()=> mask.classList.remove('show');
 document.getElementById('s-save').onclick = ()=>{
-  saveCfg({url:document.getElementById('s-url').value.trim(), key:document.getElementById('s-key').value.trim(), model:document.getElementById('s-model').value.trim()});
+  let url = document.getElementById('s-url').value.trim();
+  let key = document.getElementById('s-key').value.trim();
+  let model = document.getElementById('s-model').value.trim();
+  if(!url){ url = TPLS.kimi.url; document.getElementById('s-url').value = url; }
+  if(!model){ model = TPLS.kimi.model; document.getElementById('s-model').value = model; }
+  if(!key){ alert('还没有填 API Key。\n\n获取方法：\n1. 打开 platform.moonshot.cn（Kimi 开放平台）或 platform.deepseek.com，用手机号注册\n2. 进入"API Key"页面，点"新建"，复制以 sk- 开头的字符串\n3. 回到这里粘贴，点保存'); return; }
+  saveCfg({url:url, key:key, model:model});
   mask.classList.remove('show');
-  addMsg('bot', mdLite('API 已保存 ✅ 现在可以直接提问，或点左侧「考我 / 今日一招 / 专题串讲」开始学习。'));
+  addMsg('bot', mdLite('API 已保存 ✅ Key '+key.slice(0,6)+'… → '+url.replace(/^https?:\/\//,'')+'（模型 '+model+'）\n现在直接提问即可；点左侧「考我 / 今日一招 / 专题串讲」开始学习。'));
 };
 document.querySelectorAll('.tpl').forEach(t=>{
   t.onclick = ()=>{

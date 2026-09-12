@@ -3,21 +3,41 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>临床试验带教导师 · 百题自测与 AI 答疑</title>
+<title>临床试验带教导师 · 学习工具</title>
 <style>
-  :root{ --blue:#1a56db; --text:#1f2937; --muted:#6b7280; --border:#d7dde6; --bg:#ffffff; }
+  :root{ --blue:#185fa5; --blue-deep:#0c447c; --text:#1f2937; --muted:#6b7280; --border:#d7dde6; --bg:#ffffff; --soft:#f4f8fc; }
   *{ box-sizing:border-box; margin:0; padding:0; }
-  body{ font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--text); line-height:1.6; min-height:100vh; display:flex; align-items:center; justify-content:center; }
-  .wrap{ max-width:640px; width:100%; padding:40px 24px; }
-  h1{ font-size:22px; font-weight:600; border-bottom:2px solid var(--blue); padding-bottom:12px; margin-bottom:8px; }
-  .sub{ font-size:13px; color:var(--muted); margin-bottom:28px; }
-  .cards{ display:flex; flex-direction:column; gap:14px; }
-  a.card{ display:block; border:1px solid var(--border); border-radius:12px; padding:18px 20px; text-decoration:none; color:var(--text); transition:border-color .2s, box-shadow .2s; }
-  a.card:hover{ border-color:var(--blue); box-shadow:0 2px 12px rgba(26,86,219,.08); }
-  .card b{ font-size:16px; display:block; color:var(--blue); margin-bottom:4px; }
-  .card span{ font-size:13px; color:var(--muted); }
-  .foot{ margin-top:28px; font-size:12px; color:var(--muted); border-top:1px solid var(--border); padding-top:12px; }
-  .foot a{ color:var(--blue); }
+  body{ font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--text); line-height:1.65; }
+  .wrap{ max-width:680px; margin:0 auto; padding:36px 20px 48px; }
+  header h1{ font-size:22px; font-weight:600; color:var(--blue-deep); }
+  header .tagline{ font-size:14px; color:var(--muted); margin-top:6px; }
+  header .rule{ height:2px; background:var(--blue); margin:16px 0 20px; }
+  .choose{ font-size:15px; font-weight:600; margin-bottom:14px; }
+  .choose small{ font-weight:400; color:var(--muted); font-size:13px; margin-left:6px; }
+
+  .path{ border:1px solid var(--border); border-radius:14px; padding:20px; margin-bottom:16px; }
+  .path.reco{ border-color:var(--blue); background:var(--soft); }
+  .path-head{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+  .path-head h2{ font-size:17px; font-weight:600; color:var(--blue-deep); }
+  .badge{ font-size:11px; color:var(--blue); border:1px solid var(--blue); border-radius:99px; padding:1px 10px; white-space:nowrap; }
+  .badge.amber{ color:#b45309; border-color:#b45309; }
+  .path p{ font-size:13.5px; color:var(--text); margin:10px 0 4px; }
+  .path .fit{ font-size:12.5px; color:var(--muted); margin-bottom:14px; }
+  .actions{ display:flex; gap:10px; flex-wrap:wrap; }
+  a.btn{ display:inline-block; text-decoration:none; font-size:14px; border-radius:10px; padding:10px 22px; }
+  .btn-primary{ background:var(--blue); color:#fff; font-weight:500; }
+  .btn-primary:hover{ background:var(--blue-deep); }
+  .btn-ghost{ color:var(--blue); border:1px solid var(--blue); }
+  .btn-ghost:hover{ background:var(--soft); }
+
+  details.guide{ margin-top:14px; font-size:13px; color:var(--muted); }
+  details.guide summary{ cursor:pointer; color:var(--blue); font-weight:500; }
+  details.guide ol{ margin:8px 0 0 20px; }
+  details.guide li{ margin-bottom:4px; }
+
+  footer{ margin-top:28px; padding-top:14px; border-top:1px solid var(--border); font-size:12px; color:var(--muted); }
+  footer a{ color:var(--blue); text-decoration:none; }
+  footer p{ margin-bottom:4px; }
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#185fa5">
@@ -29,23 +49,51 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>临床试验 · 百题自测</h1>
-  <p class="sub">基于 2026 版 GCP 法规与临床试验全流程实操资料整理的两套练习题。点击进入即可答题，进度自动保存在你的浏览器本地。</p>
-  <div class="cards">
-    <a class="card" href="quiz/quiz.html">
-      <b>综合百题自测</b>
-      <span>覆盖 GCP 法规、试验前期准备、中期执行、后期收尾及综合情景，共 100 题 · 含踩坑提醒</span>
-    </a>
-    <a class="card" href="quiz/quiz_gcp.html">
-      <b>GCP 法规百题</b>
-      <span>仅基于 2026 版 GCP 法规出题，以情景题为主，共 100 题 · 适合检验法规理解</span>
-    </a>
-    <a class="card" href="web-mentor/">
-      <b>带教导师（AI 实时问答）</b>
-      <span>网页版 AI 导师：填入你自己的 API Key 即可实时对话，支持「考我 / 今日一招 / 专题串讲」，资料仅在你的浏览器本地处理</span>
-    </a>
+  <header>
+    <h1>临床试验带教导师</h1>
+    <p class="tagline">把 2026 版 GCP 法规和一线执行经验，变成能随身带的学习工具。有两种用法，选一个开始：</p>
+    <div class="rule"></div>
+  </header>
+
+  <p class="choose">我想……</p>
+
+  <div class="path reco">
+    <div class="path-head">
+      <h2>刷题自测</h2>
+      <span class="badge">免配置 · 点开就答 · 离线可用</span>
+    </div>
+    <p>两套各 100 道情景题：一道题一个真实工作场景，答完看要点和踩坑提醒，进度自动保存在这台设备上。</p>
+    <p class="fit">适合：想系统过一遍 GCP 和全流程、检验自己理解程度。</p>
+    <div class="actions">
+      <a class="btn btn-primary" href="quiz/quiz.html">进入综合百题</a>
+      <a class="btn btn-ghost" href="quiz/quiz_gcp.html">GCP 法规专项 100 题</a>
+    </div>
   </div>
-  <p class="foot">题库文本版见仓库根目录 <a href="https://github.com/CTu2024/clinical-trial-mentor/blob/main/quiz-bank.md">quiz-bank.md</a> · 使用方式与本地导入见 <a href="https://github.com/CTu2024/clinical-trial-mentor#readme">README</a></p>
+
+  <div class="path">
+    <div class="path-head">
+      <h2>AI 实时答疑</h2>
+      <span class="badge amber">需要自己的 API Key</span>
+    </div>
+    <p>像问一位带教前辈：直接提执行中的问题，结论先行、必附踩坑提醒和法规出处；也能让它"考我"或把某个专题串讲一遍。</p>
+    <p class="fit">适合：手头正遇到具体问题，想要针对性的讲解，而不是翻题库。</p>
+    <div class="actions">
+      <a class="btn btn-primary" href="web-mentor/">进入 AI 导师</a>
+    </div>
+    <details class="guide">
+      <summary>第一次用 AI 答疑？3 步设置（约 5 分钟）</summary>
+      <ol>
+        <li>打开 <b>platform.moonshot.cn</b>（Kimi）或 <b>platform.deepseek.com</b>，手机号注册，新用户有免费额度</li>
+        <li>在"API Key"页面点"新建"，复制那串 <b>sk-</b> 开头的字符</li>
+        <li>进入 AI 导师 → 点右上角"⚙ 设置 API"→ 粘贴 → 保存</li>
+      </ol>
+    </details>
+  </div>
+
+  <footer>
+    <p>答题进度和 API Key 只保存在你自己的设备浏览器里；刷题部分离线也能用。</p>
+    <p>题库文本版 <a href="https://github.com/CTu2024/clinical-trial-mentor/blob/main/quiz-bank.md">quiz-bank.md</a> · 项目介绍与源码 <a href="https://github.com/CTu2024/clinical-trial-mentor#readme">GitHub</a> · 本工具仅供学习参考，不构成法规咨询或执业建议。</p>
+  </footer>
 </div>
 <script>
 if ("serviceWorker" in navigator) {
