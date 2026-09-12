@@ -307,7 +307,7 @@ async function callLLM(userContent, onDelta){
     else if(res.status===405) hint = '（API 地址最可能填成了官网地址 platform.moonshot.cn——正确的是 https://api.moonshot.cn/v1，点设置里的「Kimi (Moonshot)」自动填好，程序现在也会自动纠正）';
     else if(res.status===429) hint = '（请求太频繁或账户余额不足——稍后再试，或去平台充值）';
     else if(res.status>=500) hint = '（API 服务暂时不可用——稍后再试）';
-    throw new Error('API 请求失败 '+res.status+' '+hint+'：'+t.slice(0,200));
+    throw new Error('API 请求失败 '+res.status+' '+hint+'\n实际请求地址：'+base+'/chat/completions\n（如果是 404，请打开设置点一次「测试连接」——测试成功会自动保存正确地址）');
   }
   const reader = res.body.getReader();
   const dec = new TextDecoder();
@@ -469,7 +469,10 @@ document.getElementById('s-test').onclick = async ()=>{
     if(r.ok){
       const j = await r.json().catch(()=>null);
       const n = j && j.data ? j.data.length : 0;
-      el.textContent = '✅ 连接成功：地址和 Key 都有效（可用模型 '+n+' 个）。点「保存」后即可开始提问。';
+      const model = document.getElementById('s-model').value.trim() || TPLS.kimi.model;
+      document.getElementById('s-model').value = model;
+      saveCfg({url:url, key:key, model:model});
+      el.textContent = '✅ 连接成功（可用模型 '+n+' 个），配置已自动保存。关掉本窗口直接提问即可。';
     }else if(r.status===401 || r.status===403){
       el.textContent = '❌ 地址正确，但 Key 无效（'+r.status+'）——请回平台重新复制完整的 Key（sk- 开头，一整串）。';
     }else{
