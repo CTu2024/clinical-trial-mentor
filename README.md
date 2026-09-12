@@ -19,14 +19,14 @@
 
 ### 2️⃣ WorkBuddy 专家包（AI 答疑 · 推荐，免 API Key）
 
-如果你在用 [WorkBuddy](https://www.workbuddy.cn)：下载 [`expert/clinical-trial-mentor.zip`](expert/clinical-trial-mentor.zip)，在 WorkBuddy「专家 → 我的专家」导入即可，**AI 由 WorkBuddy 提供，不需要自己申请 API Key**。同样的带教人格 + 三种学习模式（考我 / 今日一招 / 专题串讲），且支持放入自有资料扩展知识库（见 [expert/README](expert/clinical-trial-mentor/README.md)）。
+如果你在用 [WorkBuddy](https://www.workbuddy.cn)：下载 [`expert/clinical-trial-mentor.zip`](expert/clinical-trial-mentor.zip)，在 WorkBuddy「专家 → 我的专家」导入即可，**AI 由 WorkBuddy 提供，不需要自己申请 API Key**。同样的带教人格 + 三种学习模式（考我 / 今日一招 / 专题串讲）；内置 GCP 法规全文、全流程三部曲与题库，也可放入自有资料扩展知识库（见 [expert/README](expert/clinical-trial-mentor/README.md)）。
 
 ### 3️⃣ 网页版 AI 带教导师（BYOK，填自己的 API Key）
 
 打开 **https://ctu2024.github.io/clinical-trial-mentor/web-mentor/** ：
 
 - 点右上角「⚙ 设置 API」，填入 **Kimi / DeepSeek / 任意 OpenAI 兼容接口**的地址和 Key
-- 内置 2026 版 GCP 法规全文 + 200 题题库做检索（纯浏览器本地 BM25，不需要后端）
+- 内置 2026 版 GCP 法规全文 + 全流程操作指南三部曲 + 200 题题库做检索（纯浏览器本地 BM25，不需要后端）
 - 三种学习模式：
   - **考我** — 出情景题等你作答，逐条点评，可指定专题（如"考我，伦理相关的"）
   - **今日一招** — 随机一个踩坑场景的情景小故事

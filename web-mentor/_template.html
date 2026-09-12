@@ -60,7 +60,7 @@
 </head>
 <body>
 <header>
-  <h1>临床试验带教导师</h1><span class="badge">BYOK 网页版 · 资料仅本地处理</span><span class="badge" id="ver-badge" title="页面内核版本">内核 0912f</span>
+  <h1>临床试验带教导师</h1><span class="badge">BYOK 网页版 · 资料仅本地处理</span><span class="badge" id="ver-badge" title="页面内核版本">内核 0912g</span>
   <span class="spacer"></span>
   <a class="btn btn-home" href="../" title="回到首页选择其他模式">⌂ 首页</a>
   <button class="btn" id="btn-settings">⚙ 设置 API</button>
@@ -68,7 +68,7 @@
 <main>
   <aside>
     <h3>知识库</h3>
-    <div class="kbstat"><b id="kb-count">0</b>已索引片段（内置 GCP 法规 + 200 题）</div>
+    <div class="kbstat"><b id="kb-count">0</b>已索引片段（GCP 法规 + 全流程三部曲 + 200 题）</div>
     <div class="drop" id="drop">把你的培训资料拖到这里<br>（.md / .txt，仅在本浏览器解析）<br>或点击选择文件</div>
     <input type="file" id="file" multiple accept=".md,.txt" style="display:none">
     <h3>学习模式</h3>
@@ -78,7 +78,7 @@
       <button class="btn" data-mode="deep">📚 专题串讲</button>
     </div>
     <h3>说明</h3>
-    <p class="hint">问答与出题基于内置的 2026 版 GCP 法规和题库。拖入自己的 Markdown 资料后，检索范围会自动扩展。上传的资料只在你的浏览器里解析，不会上传到任何服务器；对话时仅发送检索到的相关片段到你所配置的 AI 服务。</p>
+    <p class="hint">问答与出题基于内置的 2026 版 GCP 法规、临床试验全流程操作指南三部曲和 200 道题。拖入自己的 Markdown 资料后，检索范围会自动扩展。上传的资料只在你的浏览器里解析，不会上传到任何服务器；对话时仅发送检索到的相关片段到你所配置的 AI 服务。</p>
   </aside>
   <div class="chat">
     <div id="msgs"></div>
@@ -86,7 +86,7 @@
       <textarea id="inp" rows="1" placeholder="问一个临床试验执行中的问题，或说「考我」…"></textarea>
       <button class="btn btn-primary" id="send">发送</button>
     </div>
-    <p class="priv">AI 回答仅供学习参考，不构成法规咨询；实操请以现行法规与贵机构 SOP 为准。</p>
+    <p class="priv">AI 回答仅供学习参考，不构成法规咨询；实操请以现行法规与贵机构 SOP 为准。内置培训资料来源于网络整理，仅供学习。</p>
   </div>
 </main>
 
@@ -123,6 +123,7 @@ window.onerror = function(msg, src, line, col){
 // ================= injected data =================
 const GCP_REG = __GCP_REG__;
 const QUIZ = __QUIZ__;
+const PROC_CHUNKS = __PROC_CHUNKS__;
 
 // ================= BM25 =================
 function tokenize(text){
@@ -200,11 +201,12 @@ function buildIndex(){
 function bm25(query, k=5, kindFilter){
   if(!INDEX || !CHUNKS.length) return [];
   const k1=1.5, b=0.75;
+  const kinds = Array.isArray(kindFilter) ? kindFilter : (kindFilter ? [kindFilter] : null);
   const qTokens = tokenize(query);
   const scores = [];
   for(let i=0;i<CHUNKS.length;i++){
     const c = CHUNKS[i];
-    if(kindFilter && c.k !== kindFilter) continue;
+    if(kinds && !kinds.includes(c.k)) continue;
     const tf = {};
     for(const t of c.tokens) tf[t]=(tf[t]||0)+1;
     let score = 0;
@@ -222,6 +224,7 @@ function bm25(query, k=5, kindFilter){
 function buildKB(){
   CHUNKS = [];
   chunkRegulation(); chunkQuiz();
+  for(const c of PROC_CHUNKS) CHUNKS.push({t:c.t, s:c.s, k:'proc', tokens:tokenize(c.t)});
   for(const d of USER_DOCS) chunkUserDoc(d.name, d.text);
   buildIndex();
   document.getElementById('kb-count').textContent = CHUNKS.length + (USER_DOCS.length? ' + '+USER_DOCS.length+' 份自备':'');
@@ -263,25 +266,43 @@ const SYSTEM_PROMPT = `你是一位在临床试验一线工作了十几年的资
 3. 必带踩坑提醒：涉及实操的问题，明确指出"最容易栽的坑"。
 4. 启发式分层展开：回答有多个要点时，先每点给一句提示，然后问用户"想先展开哪一点"，用户追问再深入。
 5. 少文字多结构：能列清单不写段落，能分点不分块。
-6. 只依据【参考资料】回答专业内容，引用时注明出处（如"来源：2026版GCP第二十六条"或"综合卷第9题"）。**如果【参考资料】与问题主题不相关（例如问的是资料范围之外的专题），必须明确回答"这个问题超出我的内置资料范围"，并说明内置资料范围（2026版GCP法规全文 + 200道题 + 用户上传的资料），绝对不能拿不相关的片段拼凑回答，也不能凭通用知识回答法规细节。**资料部分覆盖时，只答覆盖到的部分，其余如实说明。
+6. 只依据【参考资料】回答专业内容，引用时注明出处（如"来源：2026版GCP第二十六条"、"全流程2·SAE 报告"或"综合卷第9题"）。**如果【参考资料】与问题主题不相关（例如问的是资料范围之外的专题），必须明确回答"这个问题超出我的内置资料范围"，并说明内置资料范围（2026版GCP法规全文 + 临床试验全流程操作指南三部曲 + 200道题 + 用户上传的资料），绝对不能拿不相关的片段拼凑回答，也不能凭通用知识回答法规细节。**资料部分覆盖时，只答覆盖到的部分，其余如实说明。
 7. 时限、数字、条款必须与参考资料完全一致，绝对不编造。
 8. 2026版GCP自2026年9月1日起施行，涉及新旧版本差异时主动提醒。
 9. 全程使用中文。`;
 
 function contentTokens(query){
   // 从问题里提取"有信息量"的词元，过滤通用词（什么/要求/临床/实验等），用于判断检索结果与问题的关键词重合度
-  const gen = new Set(['的','了','吗','呢','有','什','么','怎','如','何','要','求','规','定','需','哪','些','可','应','该','注','意','流','程','临','床','试','验','实','验','如','果','如','何','处理','进行','相关','关于','对于']);
-  return tokenize(query).filter(t => /^[a-z0-9]+$/.test(t) || ![...t].every(ch => gen.has(ch)));
+  const gen = new Set(['的','了','吗','呢','有','什','么','怎','如','何','要','求','规','定','需','哪','些','可','应','该','注','意','流','程','临','床','试','验','实','验','如','果','如','何','处理','进行','相关','关于','对于','是','一','个','在','和','与','或','及']);
+  // 含"是"的双字组合（是什么/都是/会是…）纯属句式噪音，一并剔除
+  return tokenize(query).filter(t => /^[a-z0-9]+$/.test(t) || (![...t].every(ch => gen.has(ch)) && !t.includes('是')));
 }
 function buildContext(query){
-  // quota: always include top-3 regulation chunks + top-3 quiz/user chunks
-  const reg = bm25(query, 3, 'reg');
-  const rest = bm25(query, 3);
-  const hits = reg.concat(rest).sort((a,b)=>b.score-a.score);
+  // quota: 法规 top-3 + 全流程/实操 top-3 + 题库/自备 top-2，再按相对分数剔除弱相关
+  const pools = [
+    bm25(query, 3, 'reg'),
+    bm25(query, 3, 'proc'),
+    bm25(query, 2, ['quiz','user'])
+  ];
+  let cand = [];
+  for(const p of pools) for(const h of p) cand.push(h);
+  cand.sort((a,b)=>b.score-a.score);
+  if(!cand.length) return {ctx:'', src:'', weak:false, empty:true};
+  const maxScore = cand[0].score;
+  const hits = cand.filter(h=>h.score >= maxScore*0.3).slice(0,8);
   const cts = contentTokens(query);
-  // 关键词重合度：至少一个高信息量词元真实出现在片段文本里，否则视为"弱相关"
-  const covered = hits.some(h => cts.some(t => h.t.includes(t) || h.s.includes(t)));
-  if(!hits.length) return {ctx:'', src:'', weak:false, empty:true};
+  // 关键词重合度：必须由同一个片段命中至少 2 个不同的高信息量词元（单信息词问题降级为 1 个），
+  // 防止"药代动力学"里的"力学"、"明天一早"里的"明天"这类跨词边界/散落各处的假命中
+  const need = Math.min(2, cts.length);
+  const covered = hits.some(h => {
+    let n = 0;
+    for(const t of cts) if(h.t.includes(t) || h.s.includes(t)) n++;
+    return n >= need;
+  });
+  // 双保险：弱相关且最高分低于阈值（与主题完全不沾边）→ 本地直接拒答，不花用户的 API 钱
+  if(!covered && maxScore < 11.5){
+    return {ctx:'', src:'', weak:true, empty:true};
+  }
   const ctx = hits.map((h,i)=>'['+(i+1)+'] 来源：'+h.s+'\n'+h.t).join('\n\n');
   const src = '参考资料片段：'+hits.map(h=>h.s).join('、');
   return {ctx, src, weak:!covered, empty:false};
@@ -381,7 +402,7 @@ async function ask(text, opts){
       if(bc.empty){
         // 检索完全无结果：不调 API，不花用户的钱，直接如实拒答
         bot.className = 'msg';
-        bot.innerHTML = mdLite('这个问题我的**内置资料没有覆盖到**，我不能瞎答。\n\n我的知识范围：2026 版 GCP 法规全文 + 200 道题'+(CHUNKS.some(c=>c.k==='user')?' + 你上传的资料':'')+'。\n\n你可以：\n- 问 GCP 法规相关的问题\n- 说「考我」来刷题\n- 把相关培训资料（.md / .txt）从左侧上传给我，上传后马上就能答');
+        bot.innerHTML = mdLite('这个问题我的**内置资料没有覆盖到**，我不能瞎答。\n\n我的知识范围：2026 版 GCP 法规全文 + 全流程操作指南三部曲（前期准备 / 中期执行 / 数据与收尾）+ 200 道题'+(CHUNKS.some(c=>c.k==='user')?' + 你上传的资料':'')+'。\n\n你可以：\n- 问 GCP 法规或执行流程相关的问题\n- 说「考我」来刷题\n- 把更多培训资料（.md / .txt）从左侧上传给我，上传后马上就能答');
         busy = false;
         return;
       }
@@ -545,7 +566,7 @@ function handleFiles(files){
 
 // ================= init =================
 buildKB();
-addMsg('bot', mdLite('我是你的临床试验带教导师。直接问我执行中的任何问题，或者：\n- 说「考我」→ 我出情景题，你答完我点评\n- 点「今日一招」→ 一个踩坑场景小故事\n- 点「专题串讲」→ 把一个主题讲透\n\n内置知识：2026 版 GCP 法规全文 + 200 道题。超出这个范围的问题我会如实说没覆盖，不瞎编。想扩展知识库，把你的 Markdown 资料拖进左侧（手机点那个框也能选文件），仅本地解析。'));
+addMsg('bot', mdLite('我是你的临床试验带教导师。直接问我执行中的任何问题，或者：\n- 说「考我」→ 我出情景题，你答完我点评\n- 点「今日一招」→ 一个踩坑场景小故事\n- 点「专题串讲」→ 把一个主题讲透\n\n内置知识：2026 版 GCP 法规全文 + 全流程操作指南三部曲（前期准备 / 中期执行 / 数据与收尾）+ 200 道题。超出这个范围的问题我会如实说没覆盖，不瞎编。想扩展知识库，把你的 Markdown 资料拖进左侧（手机点那个框也能选文件），仅本地解析。'));
 </script>
 <script>
 if ("serviceWorker" in navigator) {
